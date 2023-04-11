@@ -5,6 +5,8 @@
 * use vite-plugin-node-polyfills to make node core modules available client side, this solves all the nasty globals patching required to import web3auth/modal
 
 * use a custom app reg claim to set the assets of interest
+* Temporary policy: ChatGPT is banned - Meta Stack Overflow
+* https://meta.stackoverflow.com/questions/421831/temporary-policy-chatgpt-is-banned?cb=1
 
 ## how to create an app reg with custom claims
 

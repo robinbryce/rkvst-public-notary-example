@@ -25,28 +25,32 @@ export async function GET() {
     },
     body: form.join("&")
   });
-  console.log(JSON.stringify(resp.status));
-  console.log(JSON.stringify(resp.statusText));
   const data = await resp.json();
-  console.log(JSON.stringify(data));
   const accessToken = data.access_token;
   const decodedToken = parseJwt(accessToken);
 
   const publicAssets = [];
-  // Note: could put a list assets filter query in the token if we wanted to be more general.
-  for (let i = 0; i < Number(decodedToken.num_public_assets ?? 0); i++ ) {
-    publicAssets.push(decodedToken[`public_asset_${i}`]);
+  // Special handling for the claims specific to this demo
+  if (decodedToken.num_public_assets) {
+    // Note: could put a list assets filter query in the token if we wanted to be more general.
+    for (let i = 0; i < Number(decodedToken.num_public_assets ?? 0); i++ ) {
+      publicAssets.push(decodedToken[`public_asset_${i}`]);
+    }
+
+  } else {
+    console.log(`WARNING: no public assets identified in token claims. Got ${Object.keys(decodedToken)}`);
   }
+
   console.log(JSON.stringify(publicAssets))
 
   return json({
     token: accessToken,
+    claims: decodedToken,
     public_assets: publicAssets
   });
 }
 
 function parseJwt (token) {
   const parts = token.split('.');
-  console.log(JSON.stringify(parts));
   return JSON.parse(Buffer.from(parts[1], 'base64').toString());
 }
