@@ -27,7 +27,6 @@ export async function getToken() {
   // Note: We could go via our own api/rkvst/io proxy route, but there is no
   // need and this avoids request loop pitfalls with authorize=true
   const url = `${env["PUBLIC_RKVST_URL"]}archivist/iam/v1/appidp/token`
-  console.log(url);
   const resp = await fetch(url, {
     method: 'POST',
     headers: {

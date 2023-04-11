@@ -21,6 +21,8 @@ export async function GET() {
   const decodedToken = parseJwt(accessToken);
 
   const publicAssets = [];
+  const assets = [];
+
   // Special handling for the claims specific to this demo
   if (decodedToken.num_public_assets) {
     // Note: could put a list assets filter query in the token if we wanted to be more general.
@@ -32,13 +34,22 @@ export async function GET() {
     console.log(`WARNING: no public assets identified in token claims. Got ${Object.keys(decodedToken)}`);
   }
 
-  console.log(JSON.stringify(publicAssets))
+  if (decodedToken.num_assets) {
+    // Note: could put a list assets filter query in the token if we wanted to be more general.
+    for (let i = 0; i < Number(decodedToken.num_assets ?? 0); i++ ) {
+      assets.push(decodedToken[`asset_${i}`]);
+    }
+  }
+
+  // console.log(JSON.stringify(publicAssets))
+  // console.log(JSON.stringify(assets))
 
   return json({
     // Exposing the claims exposes information which may or may not be sensitve.
     // It does not expose the api access credential.
     claims: decodedToken,
-    public_assets: publicAssets
+    public_assets: publicAssets,
+    assets
   });
 }
 

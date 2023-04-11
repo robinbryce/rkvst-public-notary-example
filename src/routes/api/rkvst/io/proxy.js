@@ -36,7 +36,7 @@ export async function proxy (event, proxyOptions) {
   }
 
   const proxyUrl = new URL(trimEnd(rkvstURL, '/') + '/' + path);
-  console.log(`${event.request.url} -> ${proxyUrl.href}`);
+  // console.log(`${event.request.url} -> ${proxyUrl.href}`);
 
   const proxyHeaders = new Headers(event.request.headers);
   proxyHeaders.delete("host");
@@ -61,13 +61,11 @@ export async function proxy (event, proxyOptions) {
   if (event.request.method === 'POST') {
     const data = await event.request.json();
     options.body = JSON.stringify(data);
-    // options.keepalive = event.request.keepalive;
-    // options.headers.push(['content-type', 'application/json'])
   }
 
   const proxyRequest = new Request(proxyUrl, options);
-  // console.log(proxyRequest.headers); reveals Authorization header
-  console.log(proxyRequest.url);
+  // console.log(proxyRequest.headers); // SECURITY LEAK
+  // console.log(proxyRequest.url);
 
   try {
     const upstream = await fetch(proxyRequest)
@@ -83,7 +81,6 @@ export async function proxy (event, proxyOptions) {
     })
     return response
   } catch (err) {
-    console.log('ERROR: request headers', proxyRequest.headers)
     console.log('ERRRO: fetch error:', err)
     return json(err)
   }
