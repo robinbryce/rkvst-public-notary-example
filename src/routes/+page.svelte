@@ -15,7 +15,8 @@
     <NavLi href="{RKVST_URL}" target="_blank">The RKVST</NavLi>
   </NavUl>
 </Navbar>
-<AssetsAccordion publicAssets={data.public_assets} assets={data.assets}/>
+
+<AssetsDrawer publicAssets={data.public_assets} assets={data.assets}/>
 
 <script>
   import * as env from '$env/static/public';
@@ -23,7 +24,7 @@
   import { onMount } from 'svelte';
 
   import { Navbar, NavBrand, NavLi, NavUl, NavHamburger } from 'flowbite-svelte';
-  import AssetsAccordion from '$components/assets/AssetsAccordion.svelte';
+  import AssetsDrawer from '$components/assets/AssetsDrawer.svelte';
 
   export let data; // layout.server.js loads this
 
