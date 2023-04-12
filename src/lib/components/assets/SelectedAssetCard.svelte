@@ -74,6 +74,7 @@
     title = asset ? asset?.attributes.arc_display_name ?? unnamedAssetTitle : pleaseSelectAsset;
     description = asset?.attributes.arc_description ?? defaultDescription;
     attributes = Object.entries(asset?.attributes ?? {});
+    image = asset?.attributes?.token_collection_image ?? defaultImage 
   }
 </script>
 
