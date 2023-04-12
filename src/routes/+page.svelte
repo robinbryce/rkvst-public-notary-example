@@ -11,25 +11,54 @@
   </NavBrand>
   <NavHamburger on:click={toggle} />
   <NavUl {hidden}>
+    <NavLi>
+      <div class="text-center">
+        <Button on:click={() => (assetsDrawerHidden = !assetsDrawerHidden)}>{drawerButtonText}</Button>
+      </div>
+    </NavLi>
     <NavLi href="/" active={true}>Home</NavLi>
     <NavLi href="{RKVST_URL}" target="_blank">The RKVST</NavLi>
   </NavUl>
 </Navbar>
 
-<AssetsDrawer publicAssets={data.public_assets} assets={data.assets}/>
-
+<AssetsDrawer publicAssets={data.public_assets} assets={data.assets} bind:hidden={assetsDrawerHidden}/>
+<div class="flex justify-center gap-4 pt-10">
+  <div><SelectedAssetCard asset={$selectedAsset}/></div>
+  <!-- ... -->
+  <div>Events</div>
+</div>
 <script>
   import * as env from '$env/static/public';
   import { invalidate } from '$app/navigation';
   import { onMount } from 'svelte';
 
   import { Navbar, NavBrand, NavLi, NavUl, NavHamburger } from 'flowbite-svelte';
+  import { Button } from 'flowbite-svelte';
   import AssetsDrawer from '$components/assets/AssetsDrawer.svelte';
+  import SelectedAssetCard from '$components/assets/SelectedAssetCard.svelte';
 
-  export let data; // layout.server.js loads this
+  import { selectedAsset } from '$lib/stores/assets.js';
 
   const RKVST_URL=env['PUBLIC_RKVST_URL'];
   const refreshInterval = env['PUBLIC_RKVST_IO_REFRESH_DEFAULT'] ?? 12000;
+
+  export let data; // layout.server.js loads this
+
+  let assetsDrawerHidden = true;
+  let drawerButtonText = "Select Asset"
+  let selectedAssetName;
+  let selectedIdentity;
+
+  $: {
+    if ($selectedAsset) {
+      selectedAssetName = $selectedAsset.attributes?.arc_display_name;
+      selectedIdentity = $selectedAsset.identity;
+      drawerButtonText = `Change Asset (${selectedAssetName})`;
+    } else {
+      drawerButtonText = "Select Asset";
+    }
+  }
+
 
   // invalidate only makse sense from the client end
   onMount(() => {

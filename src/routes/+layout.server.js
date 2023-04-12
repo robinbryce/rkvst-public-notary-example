@@ -18,6 +18,7 @@ export async function load({fetch, depends }) {
   const assets = fetchassets(fetch, config?.assets ?? [], assetsPath);
 
   return {
+    config,
     public_assets,
     assets
   };

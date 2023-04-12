@@ -1,26 +1,26 @@
 {#if assets.length}
 <Table>
   <TableHead>
+    <TableHeadCell>Asset Name</TableHeadCell>
     {#if showId}
     <TableHeadCell>ID</TableHeadCell>
     {/if}
-    <TableHeadCell>Asset Name</TableHeadCell>
     <TableHeadCell>Asset Type</TableHeadCell>
   </TableHead>
   <TableBody class="divide-y">
     {#each assets as asset, i (asset.identity)}
     <TableBodyRow>
+      <TableBodyCell>
+        <Button on:click={() => ($selectedAsset = {...asset})}>{asset.attributes?.arc_display_name}</Button>
+      </TableBodyCell>
       {#if showId}
       <TableBodyCell>
-        <p>{uuidAbbrev(uuidFromIdentity(asset.identity))}</p>
-      </TableBodyCell>
-      {/if}
-      <TableBodyCell>
-        <Button id="b1" on:click={() => ($selectedAsset = {...asset})}>{asset.attributes?.arc_display_name}</Button>
+        <Button id="b1" outline={true} disabled>{identityAbbrev(asset.identity)}</Button>
         <Popover class="w-96 text-sm font-light " triggeredBy="#b1">
           {asset.identity}
         </Popover>
       </TableBodyCell>
+      {/if}
       <TableBodyCell>{asset.attributes?.arc_display_type}</TableBodyCell>
     </TableBodyRow>
     {/each}
@@ -43,6 +43,9 @@
     return parts.length && parts[parts.length - 1] || identity;
   }
   function uuidAbbrev(uuid) {
-    return uuid.slice(6) + '...' + uuid.slice(uuid.length - 3);
+    return uuid.slice(0, 6) + '...' + uuid.slice(uuid.length - 3);
+  }
+  function identityAbbrev(identity) {
+    return uuidAbbrev(uuidFromIdentity(identity));
   }
 </script>
