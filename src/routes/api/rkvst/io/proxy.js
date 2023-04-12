@@ -30,13 +30,13 @@ export async function proxy (event, proxyOptions) {
     throw error(404, `bad path, missing ${markerSegment} in ${uin.href}`)
   }
 
-  let path = trimStart(uin.pathname.slice(i+markerSegment.length), '/')
+  // Note: be sure to put the query string back
+  let path = trimStart(uin.pathname.slice(i+markerSegment.length), '/') + uin.search;
   if (!path.startsWith(ARCHIVIST_API_STEM)) {
     throw error(404, `bad path, must startWith ${ARCHIVIST_API_STEM}, not ${path}`);
   }
 
   const proxyUrl = new URL(trimEnd(rkvstURL, '/') + '/' + path);
-  // console.log(`${event.request.url} -> ${proxyUrl.href}`);
 
   const proxyHeaders = new Headers(event.request.headers);
   proxyHeaders.delete("host");
@@ -49,6 +49,11 @@ export async function proxy (event, proxyOptions) {
     // console.log(token); // SECURITY LEAK
     proxyHeaders.set('Authorization', `Bearer ${token}`);
   }
+  proxyHeaders.set('Content-Type', 'application/json');
+
+  // Note: When the fetch comes from the browser, we get the user agent headers
+  // and those trigger pendo For typical api applications this is not an issue.
+  proxyHeaders.delete('user-agent');
 
   const options = {
     method: event.request.method,
@@ -65,10 +70,10 @@ export async function proxy (event, proxyOptions) {
 
   const proxyRequest = new Request(proxyUrl, options);
   // console.log(proxyRequest.headers); // SECURITY LEAK
-  // console.log(proxyRequest.url);
+  // console.log(`${event.request.url} -> ${proxyUrl.href}`);
 
   try {
-    const upstream = await fetch(proxyRequest)
+    const upstream = await event.fetch(proxyRequest)
     const body = JSON.stringify(await upstream.json())
     const response = new Response(body, {
       status: upstream.status,
@@ -81,7 +86,7 @@ export async function proxy (event, proxyOptions) {
     })
     return response
   } catch (err) {
-    console.log('ERRRO: fetch error:', err)
+    console.log('ERROR: fetch error:', err)
     return json(err)
   }
 }

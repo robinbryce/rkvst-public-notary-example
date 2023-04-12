@@ -22,10 +22,10 @@
 </Navbar>
 
 <AssetsDrawer publicAssets={data.public_assets} assets={data.assets} bind:hidden={assetsDrawerHidden}/>
-<div class="flex justify-center gap-4 pt-10">
+<div class="flex justify-center gap-4 pt-10 w-full">
   <div><SelectedAssetCard asset={$selectedAsset}/></div>
   <!-- ... -->
-  <div>Events</div>
+  <div class="w-1/4"><SelectedEventsCard asset={$selectedAsset} events={[]}/></div>
 </div>
 <script>
   import * as env from '$env/static/public';
@@ -36,6 +36,7 @@
   import { Button } from 'flowbite-svelte';
   import AssetsDrawer from '$components/assets/AssetsDrawer.svelte';
   import SelectedAssetCard from '$components/assets/SelectedAssetCard.svelte';
+  import SelectedEventsCard from '$components/events/SelectedEventsCard.svelte';
 
   import { selectedAsset } from '$lib/stores/assets.js';
 
