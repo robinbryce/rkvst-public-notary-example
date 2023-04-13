@@ -14,7 +14,7 @@
   {#if events.length}
   <p class="w-full">The asset has {events.length} events</p>
   {#each events as event}
-    <EventReceiptEntry {event}/>
+    <EventReceiptEntry {event} bind:receiptDrawerHidden={receiptDrawerHidden}/>
   {/each}
   {:else}
   <p>No events available for asset</p>
@@ -32,6 +32,7 @@
 
   import {listEvents } from "$lib/rkvstapi/listevents.js";
   export let asset;
+  export let receiptDrawerHidden = true; // bind this, it is shared witha ll event buttons
   let events = [];
 
   // Defaults.

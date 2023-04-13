@@ -1,5 +1,5 @@
 <div>
-  <Card class="min-w-[25%]" img="{image}" reverse={vCard} size="md">
+  <Card class="min-w-[25%]" img="{image}" reverse={true} size="md">
     <h5 id="pop1" class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{title}</h5>
     {#if asset}
     <Popover class="w-96 text-sm font-light " triggeredBy="#pop1">
@@ -33,7 +33,6 @@
     {/if}
     {/if}
   </Card>
-  <Toggle bind:checked={vCard} class="mt-4 italic dark:text-gray-500">Reverse</Toggle>
 </div>
 
 <script>
@@ -45,7 +44,6 @@
   import NamedStringValue from '$lib/components/attributes/NamedStringValue.svelte';
 
   export let asset;
-  let vCard = true;
 
   // Defaults.
   let unnamedAssetTitle = "Asset (un named)";

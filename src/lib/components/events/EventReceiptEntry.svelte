@@ -58,7 +58,7 @@
 
     </div>
   </div>
-  <Button class="w-fit">
+  <Button class="w-fit" on:click={() => (receiptDrawerHidden = !receiptDrawerHidden)}>
     Receipt <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 ml-2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
   </Button>
 </Card>
@@ -70,19 +70,22 @@
   import AttributeList from '$lib/components/attributes/AttributeList.svelte';
 
   export let event;
+  export let receiptDrawerHidden = true; // this should be bound in the page
 
-  let revealRawEventAttributes = false;
-  let revealRawAssetAttributes = false;
-
+  // derived state
   let date = event?.timestamp_committed ?? false;
   if (date) date = new Date(date);
   let operation = event?.operation;
   let behaviour = event?.behaviour;
   let eventType = event?.event_attributes?.arc_display_type;
 
-
   let description = eventType ?? `${behaviour}:${operation}`
 
   let eventAttributes = Object.entries(event?.event_attributes ?? []);
   let assetAttributes = Object.entries(event?.asset_attributes ?? []);
+
+  // dynamic state
+  let revealRawEventAttributes = false;
+  let revealRawAssetAttributes = false;
+
 </script>

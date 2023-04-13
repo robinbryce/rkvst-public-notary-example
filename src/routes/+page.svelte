@@ -22,10 +22,11 @@
 </Navbar>
 
 <AssetsDrawer publicAssets={data.public_assets} assets={data.assets} bind:hidden={assetsDrawerHidden}/>
+<ReceiptDrawer bind:hidden={receiptDrawerHidden}/>
 <div class="flex justify-center gap-4 pt-10 w-full">
   <div><SelectedAssetCard asset={$selectedAsset}/></div>
   <!-- ... -->
-  <div class="w-1/4"><SelectedEventsCard asset={$selectedAsset} events={[]}/></div>
+  <div class="w-1/4"><SelectedEventsCard asset={$selectedAsset} events={[]} bind:receiptDrawerHidden={receiptDrawerHidden}/></div>
 </div>
 <script>
   import * as env from '$env/static/public';
@@ -35,6 +36,7 @@
   import { Navbar, NavBrand, NavLi, NavUl, NavHamburger } from 'flowbite-svelte';
   import { Button } from 'flowbite-svelte';
   import AssetsDrawer from '$components/assets/AssetsDrawer.svelte';
+  import ReceiptDrawer from '$lib/components/events/ReceiptDrawer.svelte';
   import SelectedAssetCard from '$components/assets/SelectedAssetCard.svelte';
   import SelectedEventsCard from '$components/events/SelectedEventsCard.svelte';
 
@@ -46,6 +48,7 @@
   export let data; // layout.server.js loads this
 
   let assetsDrawerHidden = true;
+  let receiptDrawerHidden = true;
   let drawerButtonText = "Select Asset"
   let selectedAssetName;
   let selectedIdentity;
