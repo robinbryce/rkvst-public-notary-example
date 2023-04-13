@@ -37,10 +37,7 @@
 </div>
 
 <script>
-  import Prism from 'prismjs';
-
   import { Card, Toggle } from "flowbite-svelte";
-  import { AccordionItem, Accordion } from 'flowbite-svelte';
   import { Popover } from "flowbite-svelte";
 
   import AttributeString from '$lib/components/attributes/AttributeString.svelte';

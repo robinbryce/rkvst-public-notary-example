@@ -34,7 +34,7 @@
   import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
   import { Button, Popover } from 'flowbite-svelte';
   import { selectedAsset } from '$lib/stores/assets.js';
-  import { uuidFromIdentity, identityAbbrev } from '$lib/rkvstapi/identity.js';
+  import { identityAbbrev } from '$lib/rkvstapi/identity.js';
   export let viewName;
   export let assets;
   export let showId = true;
