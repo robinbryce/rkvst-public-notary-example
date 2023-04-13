@@ -13,7 +13,6 @@
 
   const dispatch = createEventDispatcher();
   const copy = (text) => {
-    console.log(`copying "${text}"`)
     navigator.clipboard.writeText(text).then(
       () => dispatch("copy", text),
       (e) => dispatch("fail")

@@ -25,10 +25,7 @@
 {/if}
 <script>
 
-  import { List, Li } from 'flowbite-svelte';
   import CopyIconLink from '$lib/components/utility/CopyIconLink.svelte';
-  // import { DocumentDuplicate } from 'svelte-heros-v2';
-  // import { createEventDispatcher } from "svelte";
 
   export let receipt;
   export let worldRoot;
@@ -40,17 +37,6 @@
 
   // 
   export let baseName = "receipt"
-
-  /*
-  let copyText = "";
-  const dispatch = createEventDispatcher();
-  const copy = (text) => {
-    console.log(`copying "${text}"`)
-    navigator.clipboard.writeText(text).then(
-      () => dispatch("copy", text),
-      (e) => dispatch("fail")
-    );
-  };*/
 
   const mountClass = "mb-6 rounded-md border-dotted border-2 dark:bg-gray-700 font-normal text-gray-700 dark:text-gray-300 leading-tight"
 
