@@ -20,32 +20,43 @@
     </div>
   </div>
 
-   <form action="#" class="mb-6">
-    <div class="mb-6">
-      <Label for='title' class='block mb-2'>Event identity</Label>
-      <Input id='title' name='title' disabled value="{$selectedEvent?.identity}" />
-    </div>
-    <Button type="submit" class="w-full">Get Receipt</Button>
-   </form>
+  <div class="mb-6">
+    <Label for='title' class='block mb-2'>Event identity</Label>
+    <Input id='title' name='title' disabled value="{$selectedEvent?.identity}" />
+  </div>
+  <Button class="w-full" on:click={async () => await getSelectedEventReceipt()}>Get Receipt</Button>
+  {#if gettingReceipt}
+  <div class="mb-3 rounded-md border-dotted border-2 dark:bg-gray-700 font-normal text-gray-700 dark:text-gray-300 leading-tight">
+    <p>fetching receipt</p>
+    <Spinner/>
+  </div>
+  {/if}
+  <ReceiptView bind:receipt={receipt} />
+
 </Drawer>
 
 <script>
   import { Drawer, CloseButton } from 'flowbite-svelte';
   import { Button, Input, Label} from 'flowbite-svelte';
+  import { Spinner } from 'flowbite-svelte';
+
   import { sineIn } from 'svelte/easing';
 
   import EventDescription from '$lib/components/events/EventDescription.svelte';
+  import ReceiptView from '$lib/components/events/ReceiptView.svelte'
 
   import { selectedEvent } from '$lib/stores/events.js';
   import { selectedAsset } from '$lib/stores/assets.js';
 
-  export let hidden = true; 
-  let defaultImage = "https://nftstorage.link/ipfs/bafybeia7mydteutimc7j7urkk3vnjo2ndkrvoujijbth2kgzuffa6wznjm/game-icon.png";
-  let image = $selectedEvent?.event_attributes?.token_image;
-  if (!image)
-    image = $selectedAsset?.attributes?.token_collection_image;
-  image = image ?? defaultImage;
+  import { getReceipt } from '$lib/rkvstapi/getreceipt.js';
 
+  export let hidden = true;
+
+  // state
+  let receipt = undefined;
+  let gettingReceipt = false;
+
+  // fixed configuration
   // let activateClickOutside = false
   let backdrop = false
   let transitionParams = {
@@ -53,4 +64,35 @@
     duration: 200,
     easing: sineIn
   };
+
+  // derived content
+  let defaultImage = "https://nftstorage.link/ipfs/bafybeia7mydteutimc7j7urkk3vnjo2ndkrvoujijbth2kgzuffa6wznjm/game-icon.png";
+  let image = $selectedEvent?.event_attributes?.token_image;
+  if (!image)
+    image = $selectedAsset?.attributes?.token_collection_image;
+  image = image ?? defaultImage;
+
+
+  // ----
+  async function getSelectedEventReceipt() {
+    if (gettingReceipt)
+      return;
+
+    const event = $selectedEvent;
+    if (!event)
+      return;
+    const blockNumber = $selectedEvent.block_number;
+    if (!blockNumber)
+      return;
+    
+    try {
+      gettingReceipt = true;
+      // this can take a second or so
+      receipt = await getReceipt(event.identity, blockNumber);
+    } catch (err) {
+      console.log(`ERROR: error getting receipt ${err}`);
+    }
+    gettingReceipt = false;
+  }
+
 </script>

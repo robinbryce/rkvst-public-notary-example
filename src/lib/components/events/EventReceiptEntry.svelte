@@ -44,8 +44,16 @@
 
     <div>
       <Hr/>
+      <Toggle bind:checked={revealRawEventIntrinsics} class="mt-4 italic dark:text-gray-500">Raw Event Intrinsics (who/what/when)</Toggle>
       <Toggle bind:checked={revealRawEventAttributes} class="mt-4 italic dark:text-gray-500">Raw Event Attributes</Toggle>
       <Toggle bind:checked={revealRawAssetAttributes} class="mt-4 italic dark:text-gray-500">Raw Asset Attributes</Toggle>
+      {#if revealRawEventIntrinsics}
+        <Hr/>
+        <div class="code">
+          {JSON.stringify(eventIntrinsics, null, '  ')}
+        </div>
+ 
+      {/if}
       {#if revealRawEventAttributes}
         <Hr/>
         <div class="code">
@@ -88,13 +96,23 @@
   let behaviour = event?.behaviour;
   let eventType = event?.event_attributes?.arc_display_type;
 
-  let description = eventType ?? `${behaviour}:${operation}`
-
   let eventAttributes = Object.entries(event?.event_attributes ?? []);
   let assetAttributes = Object.entries(event?.asset_attributes ?? []);
+  
+  const eventHiddenMembers = ['asset_attributes', 'event_attributes'];
+
+  // Make a shallow copy of event, excluding the members we deal with separately
+  const eventIntrinsics = Object
+    .keys(event ?? {})
+      .reduce((intrinsics, key) => {
+        if (eventHiddenMembers.includes(key))
+          delete intrinsics[key];
+        return intrinsics
+       }, {...event});
 
   // dynamic state
   let revealRawEventAttributes = false;
   let revealRawAssetAttributes = false;
+  let revealRawEventIntrinsics = false;
 
 </script>
