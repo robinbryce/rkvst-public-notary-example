@@ -14,15 +14,21 @@
           {/each}
     </div>
     <div>
-      <MenuButton class="dots-menu dark:text-white">Raw Attributes</MenuButton>
-      <Dropdown triggeredBy=".dots-menu" class="w-48 overflow-y-auto py-1 h-48">
-        <DropdownItem class="items-center text-base gap-2">
-          <!-- just use prism for now-->
-          <div class="code">
-            {@html Prism.highlight(JSON.stringify(event?.event_attributes ?? {}, null, '  '), Prism.languages["javascript"])}
-          </div>
-        </DropdownItem>
-      </Dropdown>
+      <Toggle bind:checked={revealRawEventAttributes} class="mt-4 italic dark:text-gray-500">Raw Event Attributes</Toggle>
+      <Toggle bind:checked={revealRawAssetAttributes} class="mt-4 italic dark:text-gray-500">Raw Asset Attributes</Toggle>
+      {#if revealRawEventAttributes}
+        <Hr/>
+        <div class="code">
+          {JSON.stringify(event?.event_attributes ?? {}, null, '  ')}
+        </div>
+      {/if}
+      {#if revealRawAssetAttributes}
+        <Hr/>
+        <div class="code">
+          {JSON.stringify(event?.asset_attributes ?? {}, null, '  ')}
+        </div>
+      {/if}
+
     </div>
   </div>
   <Button class="w-fit">
@@ -31,13 +37,16 @@
 </Card>
 <script>
   import Prism from 'prismjs';
-  import { MenuButton, Dropdown, DropdownItem } from 'flowbite-svelte';
+  import { Hr, Toggle } from 'flowbite-svelte';
   import { Card, Button } from "flowbite-svelte";
 
   import AttributeString from '$lib/components/attributes/AttributeString.svelte';
   import AttributeList from '$lib/components/attributes/AttributeList.svelte';
 
   export let event;
+
+  let revealRawEventAttributes = false;
+  let revealRawAssetAttributes = false;
 
   let date = event?.timestamp_committed ?? "(not available)";
   let operation = event?.operation;

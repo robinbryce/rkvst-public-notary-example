@@ -15,26 +15,22 @@
       {/if}
     </p>
     {#if asset}
-    <Accordion>
-      <AccordionItem open>
-        <span slot="header">Details</span>
-        {#each attributes as [name, value]}
-        {#if value?.constructor?.name === 'String'}
-          <AttributeString {name} {value}/>
-        {:else if value?.constructor?.name === 'Array'}
-          <AttributeList {name} {value}/>
-        {:else}
-          <AttributeString {name} value={"structured value"}/>
-        {/if}
-        {/each}
-      </AccordionItem>
-      <AccordionItem>
-        <span slot="header">Raw Attributes</span>
-        <div class="code">
-          {@html Prism.highlight(JSON.stringify(asset, null, '  '), Prism.languages["javascript"])}
-        </div>
-      </AccordionItem>
-    </Accordion>
+    {#each attributes as [name, value]}
+    {#if value?.constructor?.name === 'String'}
+      <NamedStringValue {name} {value} popover={false}/>
+    {:else if value?.constructor?.name === 'Array'}
+      <AttributeList {name} {value}/>
+    {:else}
+      <AttributeString {name} value={"structured value"}/>
+    {/if}
+    {/each}
+    <Toggle bind:checked={revealRawAttributes} class="mt-4 italic dark:text-gray-500">Raw Attributes</Toggle>
+
+    {#if revealRawAttributes}
+    <div class="code">
+      {JSON.stringify(asset, null, '  ')}
+    </div>
+    {/if}
     {/if}
   </Card>
   <Toggle bind:checked={vCard} class="mt-4 italic dark:text-gray-500">Reverse</Toggle>
@@ -49,6 +45,7 @@
 
   import AttributeString from '$lib/components/attributes/AttributeString.svelte';
   import AttributeList from '$lib/components/attributes/AttributeList.svelte';
+  import NamedStringValue from '$lib/components/attributes/NamedStringValue.svelte';
 
   export let asset;
   let vCard = true;
@@ -58,8 +55,9 @@
   let pleaseSelectAsset = "Please select an asset";
   let defaultDescription = "There is no description for this asset";
   let defaultImage = "https://nftstorage.link/ipfs/bafybeia7mydteutimc7j7urkk3vnjo2ndkrvoujijbth2kgzuffa6wznjm/game-icon.png";
-  let image = defaultImage;
 
+  let revealRawAttributes = false;
+  let image = defaultImage;
   let title = pleaseSelectAsset;
   let description = defaultDescription;
   let attributes = [];

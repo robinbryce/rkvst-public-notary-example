@@ -11,11 +11,9 @@
 </Drawer>
 
 <script>
-  import { Drawer, Button, CloseButton, Popover } from 'flowbite-svelte';
+  import { Drawer, CloseButton } from 'flowbite-svelte';
   import { sineIn } from 'svelte/easing';
   import AssetsAccordion from '$components/assets/AssetsAccordion.svelte';
-
-  import { selectedAsset } from '$lib/stores/assets.js';
 
   export let hidden = true; 
   export let publicAssets = [];
