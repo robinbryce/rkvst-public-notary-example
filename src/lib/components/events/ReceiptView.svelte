@@ -1,23 +1,37 @@
 {#if receipt}
 <div class="{mountClass}">
   {#if encodings}
-   <List tag="ul" class="space-y-1">
-    <Li>
-      <a href="{encodings.receiptUrl}"download="{baseName}.b64.txt">draft-birkholz-scitt-receipts base64 text <span class="underline">{baseName}.b64.txt</span></a>
-    </Li>
-    {#if encodings.payloadText}
-    <Li>
-      <a href="{encodings.payloadJSONUrl}" target="_blank">receipt contents as <span class="underline">json</span></a>
-    </Li>
+    <div class="flex-wrap m-2">
+    <div class="flex">
+      worldRoot {worldRoot} <CopyIconLink getText={()=>worldRoot}/>
+    </div>
+    {#if encodings.receiptUrl}
+    <div class="flex">
+    <!--<a class="mr-2" href="https://datatracker.ietf.org/doc/draft-birkholz-scitt-receipts/" target="_blank"><span class="underline">draft-birkholz-scitt-receipts</span></a> -->
+    <a href="{encodings.receiptUrl}"download="{baseName}.b64.txt">
+       base64 text <span class="underline">{baseName}.b64.txt</span>
+    </a> <CopyIconLink getText={()=>receipt}/>
+    </div>
     {/if}
-   </List>
+    {#if encodings.payloadText}
+    <div class="flex">
+    <a href="{encodings.payloadJSONUrl}" target="_blank">receipt contents as <span class="underline">json</span></a>
+    <CopyIconLink getText={()=>JSON.stringify(JSON.parse(encodings.payloadText), null, 2)}/>
+    </div>
+    {/if}
+    </div>
   {/if}
 </div>
 {/if}
 <script>
 
   import { List, Li } from 'flowbite-svelte';
+  import CopyIconLink from '$lib/components/utility/CopyIconLink.svelte';
+  // import { DocumentDuplicate } from 'svelte-heros-v2';
+  // import { createEventDispatcher } from "svelte";
+
   export let receipt;
+  export let worldRoot;
   // intended to be bound for retrieval
   export let encodings;
   $: {
@@ -26,6 +40,17 @@
 
   // 
   export let baseName = "receipt"
+
+  /*
+  let copyText = "";
+  const dispatch = createEventDispatcher();
+  const copy = (text) => {
+    console.log(`copying "${text}"`)
+    navigator.clipboard.writeText(text).then(
+      () => dispatch("copy", text),
+      (e) => dispatch("fail")
+    );
+  };*/
 
   const mountClass = "mb-6 rounded-md border-dotted border-2 dark:bg-gray-700 font-normal text-gray-700 dark:text-gray-300 leading-tight"
 
@@ -50,7 +75,6 @@
    * content */
   const payloadMagic = "{\"application_parameters\"" 
   function decodePayloadFromCBOR(bytes) {
-    console.log(bytes);
     let i = bytes.indexOf(payloadMagic);
     if (i < 0) {
       console.log(`ERROR: magic marker not found in "${bytes}"`);

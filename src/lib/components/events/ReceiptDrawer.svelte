@@ -24,14 +24,14 @@
     <Label for='title' class='block mb-2'>Event identity</Label>
     <Input id='title' name='title' disabled value="{$selectedEvent?.identity}" />
   </div>
-  <Button class="w-full" on:click={async () => await getSelectedEventReceipt()}>Get Receipt</Button>
+  <Button class="w-full mb-2" on:click={async () => await getSelectedEventReceipt()}>Get Receipt</Button>
   {#if gettingReceipt}
   <div class="mb-3 rounded-md border-dotted border-2 dark:bg-gray-700 font-normal text-gray-700 dark:text-gray-300 leading-tight">
     <p>fetching receipt</p>
     <Spinner/>
   </div>
   {/if}
-  <ReceiptView bind:receipt={receipt} />
+  <ReceiptView bind:receipt={receipt} bind:worldRoot={worldRoot}/>
 
 </Drawer>
 
@@ -49,11 +49,14 @@
   import { selectedAsset } from '$lib/stores/assets.js';
 
   import { getReceipt } from '$lib/rkvstapi/getreceipt.js';
+	import { getBlock } from '$lib/rkvstapi/getblock';
 
   export let hidden = true;
 
   // state
   let receipt = undefined;
+  let worldRoot = undefined;
+  let receiptBlock = undefined;
   let gettingReceipt = false;
 
   // fixed configuration
@@ -84,10 +87,34 @@
     const blockNumber = $selectedEvent.block_number;
     if (!blockNumber)
       return;
-    
+
+    gettingReceipt = true;
     try {
-      gettingReceipt = true;
-      // this can take a second or so
+      // get the world root first, this verifies we have a valid block.
+      receiptBlock = await getBlock(blockNumber);
+    } catch (err) {
+      console.log(`ERROR: error getting block ${err}`);
+      gettingReceipt = false;
+      return
+    }
+
+    // RKVST runs go-quorum based ledgers and utilises their private state
+    // feature to provide auditability and confidentiality at the same time.
+    //
+    // Each node in a quorum network puts private transaction data in a node
+    // specific merkle tree. The hash of the private transaction is committed to
+    // the public (ethereum) world sate. For that reason we need the
+    // privateStateRoot to verify the proofs. For any private transaction it is
+    // always possible to check that is hash is in the public state. But it is
+    // un-necessary to do so.
+    //
+    // Note that public events are recorded using private transactions that are
+    // 'shared' with the configured public node. All events, for both restricted
+    // and public events, are recorded on the quorum blockchain using private
+    // transactions.
+    worldRoot = receiptBlock.privateStateRoot;
+    // this can take a second or so
+    try {
       receipt = await getReceipt(event.identity, blockNumber);
     } catch (err) {
       console.log(`ERROR: error getting receipt ${err}`);

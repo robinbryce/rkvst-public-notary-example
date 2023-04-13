@@ -65,7 +65,7 @@
   async function load(asset) {
     data = await listEvents(asset.identity, asset.public, 5);
     events = data?.events ?? [];
-    console.log(JSON.stringify(data, null, '  '));
+    // console.log(JSON.stringify(data, null, '  '));
   }
 </script>
 
