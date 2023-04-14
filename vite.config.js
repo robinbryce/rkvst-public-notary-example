@@ -1,17 +1,14 @@
-import path from 'path'
+import path from 'path';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 export default defineConfig({
 	logLevel: 'debug',
-	plugins: [
-		sveltekit(),
-		nodePolyfills({protocolImports: true})
-	],
+	plugins: [sveltekit(), nodePolyfills({ protocolImports: true })],
 	resolve: {
 		alias: {
-      $components: path.resolve('./src/lib/components')
+			$components: path.resolve('./src/lib/components')
 		}
 	},
 	test: {
