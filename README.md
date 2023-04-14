@@ -1,5 +1,21 @@
 # SvelteKit demo: An RKVST platform integration & use of NFT Storage.
 
+## Where can I see it ?
+
+On our favourite svelte hosting provider, vercel at this link [rkvst-public-notary-example.vercel.app](https://rkvst-public-notary-example.vercel.app/)
+
+(Please note this is subject to rate limits)
+
+## What is this demo about ?
+
+For the [Svelte Hackathon](https://hack.sveltesociety.dev/) we thought it would be great to show of how easy it is to build powerful integrations with Svelte Kit, and how the [RKVST Developer API's](https://www.rkvst.com/developers/) slot easily in to any web application. We use [NFT.Storage](https://nft.storage/) as a handy place to keep our receipts for this demo.
+ 
+This demo show cases an up coming feature on the RKVST platform which enables off line and independently verifiable "proof of posting"  for records stored in the RKVST. This is part of our commitment to solving problems with software supply chain integrity. We recently showcased this at an [IETF hackathon](https://www.rkvst.com/press_releases/rkvst-showcases-supply-chain-integrity-transparency-and-trust-implementation-at-ietf-116-hackathon/)
+
+These receipts are verifiable using standard ethereum tools or, if you prefer the convenience, our [open source tool](https://github.com/rkvst/rkvst-receipt-scitt)
+
+But once you have a receipt where do you put it ? In this demo we put it in IPFS.
+
 ## What is the RKVST ?
 
 From our [developer docs](https://www.rkvst.com/developers/)
@@ -9,20 +25,6 @@ From our [developer docs](https://www.rkvst.com/developers/)
 ## What is NFT Storage ?
 
 Its an ipfs pinning and management service oriented towards NFT's. See [nft.storage/about](https://nft.storage/#about)
-
-## What is this demo about ?
- 
-This demo show cases an up coming feature on the RKVST platform which enables off line and independently verifiable "proof of posting"  for records stored in the RKVST. This is part of our commitment to solving problems with software supply chain integrity. We recently showcased this at an [IETF hackathon](https://www.rkvst.com/press_releases/rkvst-showcases-supply-chain-integrity-transparency-and-trust-implementation-at-ietf-116-hackathon/)
-
-These receipts are verifiable using standard ethereum tools or, if you prefer the convenience, our [open source tool](https://github.com/rkvst/rkvst-receipt-scitt)
-
-But once you have a receipt where do you put it ? For the [Svelte Hackathon](https://hack.sveltesociety.dev/) we thought it would be great to show of how easy it is to build powerful integrations with Svelte Kit, and how the [RKVST Developer API's](https://www.rkvst.com/developers/) slot easily in to any web application. We use [NFT.Storage](https://nft.storage/) as a handy place to keep our receipts for this demo.
-
-## Where can I see it ?
-
-On our favourite svelte hosting provider, vercel at this link [rkvst-public-notary-example.vercel.app](https://rkvst-public-notary-example.vercel.app/)
-
-(Please note this is subject to rate limits)
 
 ## How hard was that to build ?
 
