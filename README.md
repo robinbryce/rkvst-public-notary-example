@@ -34,7 +34,7 @@ Have a look at the date stamps on the [commit history](https://github.com/robinb
 
 This demo works without signing up to the RKVST. It manages this because it is given access to selected records in the tenancy of an existing RKVST customer (who is also the developer of this demo). Access is granted using access tokens obtained by creating an [RKVST App Registration](https://docs.rkvst.com/docs/rkvst-basics/getting-access-tokens-using-app-registrations/)
 
-The code for getting the access token can be seen in [routes/api/rkvst/io/authorize.js](./src/routes/rkvst/io/authorize.js). To avoid revealing this token to the browser client we use SvelteKit [server routes](https://kit.svelte.dev/docs/routing#server) and the adapter for our provider of choice [adapter-vercel](https://kit.svelte.dev/docs/adapter-vercel) to access the client id and secret for the RKVST app registration.
+The code for getting the access token can be seen in [routes/api/rkvst/io/authorize.js](./src/routes/api/rkvst/io/authorize.js). To avoid revealing this token to the browser client we use SvelteKit [server routes](https://kit.svelte.dev/docs/routing#server) and the adapter for our provider of choice [adapter-vercel](https://kit.svelte.dev/docs/adapter-vercel) to access the client id and secret for the RKVST app registration.
 
 When the app registration is created, additional [token claims](https://openid.net/specs/openid-connect-core-1_0.html#Claims) are configured. When the svelte app obtains its access token, those claims - identifying the RKVST assets of interest - are included on the token returned to the server side route.
 
@@ -45,7 +45,7 @@ The claims identify the [RKVST Assets](https://docs.rkvst.com/docs/overview/core
 
 To make for a seamless integration, this demo implements a generic proxy for the rkvst api. The proxy code is in [routes/api/rkvst/io/proxy.js](./src/routes/api/rkvst/io/proxy.js) and the server endpoint is in [+server.js](./src/routes/api/rkvst/io/[...path]/+server.js). Note that we make use of Svelte's [rest](https://kit.svelte.dev/docs/advanced-routing#rest-parameters) route feature to capture the arbitrary route into the RKVST api.
 
-This makes it natural and simple to implement a browser client side function to list RKVST events. See the code at [lib/rkvstapi/listevent.js](./src/lib/rkvstapi/listevent.js) and its use
+This makes it natural and simple to implement a browser client side function to list RKVST events. See the code at [lib/rkvstapi/listevent.js](./src/lib/rkvstapi/listevents.js) and its use
 
 We use a load method in the application wide [layout](https://kit.svelte.dev/docs/routing#layout-layout-js) to run our `listEvents` function.  We then use the SvelteKit [invalidate](https://kit.svelte.dev/docs/modules#$app-navigation-invalidate) method to cause load method to re-run at regular intervals. This will pick up changes in the assets over time.
 
@@ -56,7 +56,7 @@ Note, this api is beta and only available for customers on the paid tier today. 
 
 With the proxy route already implemented, we only had to write a client side helper and implement the Svelte component.
 
-The helper for fetching the receipt and obtaining the decodings can be seen at [lib/rkvstapi/getreceipt.js](./src/lib/rkvstapi/getreceipt.js). The component implementing the loading can be seen at [components/events/ReceiptDrawer.svelte](./src/components/events/ReceiptDrawer.svelte). Note that as this is a beta api it is not resourced as much as other parts of the platform, so we put in a load spinner for this demo.
+The helper for fetching the receipt and obtaining the decodings can be seen at [lib/rkvstapi/getreceipt.js](./src/lib/rkvstapi/getreceipt.js). The component implementing the loading can be seen at [components/events/ReceiptDrawer.svelte](./src/lib/components/events/ReceiptDrawer.svelte). Note that as this is a beta api it is not resourced as much as other parts of the platform, so we put in a load spinner for this demo.
 
 ### Saving receipts to IPFS
 
@@ -72,4 +72,4 @@ The flow for getting a receipt, saving it to IPFS and then providing the user wi
 
 We are going to implement the smart contracts necessary to on chain verify the merkle proofs. We will then make an ERC 1155 interface which gates minting tokens based on successful proof verification. To make things convenient for the browser side we take the raw receipt and do the decomposition into the more readable formats on the server side.
 
-See [routes/api/nft-storage/store/receipt/+server.js](./src/routes/api/nft-storage/store/receipt/+servier.js)
+See [routes/api/nft-storage/store/receipt/+server.js](./src/routes/api/nft-storage/store/receipt/+server.js)
