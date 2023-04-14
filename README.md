@@ -1,4 +1,4 @@
-# SvelteKit demoing an RKVST platform integration & NFT Storage.
+# SvelteKit demo: An RKVST platform integration & use of NFT Storage.
 
 ## What is the RKVST ?
 
