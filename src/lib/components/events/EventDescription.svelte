@@ -8,7 +8,7 @@
 	let eventType = event?.event_attributes?.arc_display_type;
 	let who = event.principal_accepted.email ?? event.from;
 
-	let description = eventType ?? `${behaviour}:${operation}`;
+	export let description = eventType ?? `${behaviour}:${operation}`;
 </script>
 
 <div>

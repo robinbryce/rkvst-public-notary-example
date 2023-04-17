@@ -1,16 +1,9 @@
-import * as env from '$env/static/public';
 import { env as secrets } from '$env/dynamic/private';
-import { error, json } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
 
 import { NFTStorage } from 'nft.storage';
 
-import { stringToByteArray, decodePayload } from '$lib/receipt.js';
-
-function toUint8Array(data) {
-	// data = atob(data);
-	if (data.length == 0) throw new Error('zero length data');
-	return new Uint8Array(data);
-}
+import { decodePayload } from '$lib/receipt.js';
 
 /**
  * request body requirements:
@@ -22,8 +15,7 @@ export async function POST(event) {
 	const client = new NFTStorage({ token: secrets['NFTSTORAGE_API_KEY'] });
 
 	const { receipt_base64 } = await event.request.json();
-	if (! receipt_base64)
-		throw error(400, "receipt_base64 is a required body element");
+	if (!receipt_base64) throw error(400, 'receipt_base64 is a required body element');
 
 	// we inline the content into the nft metadata, but refer to the original as an external file
 	const receipt_content = decodePayload(receipt_base64);

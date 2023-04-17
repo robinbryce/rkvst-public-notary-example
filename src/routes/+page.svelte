@@ -9,14 +9,19 @@
 	import ReceiptDrawer from '$lib/components/events/ReceiptDrawer.svelte';
 	import SelectedAssetCard from '$components/assets/SelectedAssetCard.svelte';
 	import SelectedEventsCard from '$components/events/SelectedEventsCard.svelte';
+	import Web3AuthProvider from '$lib/components/web3/Web3AuthProvider.svelte';
 
 	import { selectedAsset } from '$lib/stores/assets.js';
-	import Web3AuthProvider from '$lib/components/web3/Web3AuthProvider.svelte';
 	import { Web3AuthModalSingleton } from '$lib/web3/web3authsingleton.js';
 	import { Web3AuthModalProviderContext } from '$lib/web3/web3authprovidercontext.js';
+	import { createProxy as createDiamondProxy } from '$lib/web3/rkvsteventtokens.js';
+
+	import { tokenContract } from '$lib/stores/receipttokens.js';
+	import { currentUserInfo } from '$lib/stores/web3userinfo.js';
 
 	const RKVST_URL = env['PUBLIC_RKVST_URL'];
 	const refreshInterval = env['PUBLIC_RKVST_IO_REFRESH_DEFAULT'] ?? 12000;
+	const tokenContractAddress = env['PUBLIC_MUMBAI_RKVST_EVENT_TOKENS_ADDRESS'];
 
 	export let data; // layout.server.js loads this
 
@@ -25,7 +30,14 @@
 	let drawerButtonText = 'Select Asset';
 	let selectedAssetName;
 	let selectedIdentity;
-	let web3auth = new Web3AuthModalSingleton({authenticated:undefined});
+	let web3auth = new Web3AuthModalSingleton({
+		authenticated: (state, current) => {
+			console.log(`+page.svelte# authenticated ${state} ${current.name}`);
+			currentUserInfo.set(state ? current : undefined);
+		},
+		signerChanged
+	});
+	let currentSignerAddress;
 
 	$: {
 		if ($selectedAsset) {
@@ -39,26 +51,34 @@
 
 	// invalidate only makes sense from the client end
 	onMount(async () => {
-
-		console.log(`
------------
-${JSON.stringify(data?.web3auth, null, '  ')}
------------
-`);
-
 		if (data?.web3auth?.chains?.length) {
 			await web3auth.prepare(
 				data?.web3auth?.chains ?? [],
-				(cfg) => new Web3AuthModalProviderContext(cfg),
-				{web3authOptions: () => data.web3auth.options ?? {}}
-				);
-			for (const cfg of data?.web3auth?.chains ?? [])
-				await web3auth.addNetwork(cfg);
+				(cfg) => new Web3AuthModalProviderContext({ ...cfg, signerChanged }),
+				{ web3authOptions: () => data.web3auth.options ?? {} }
+			);
+			for (const cfg of data?.web3auth?.chains ?? []) await web3auth.addNetwork(cfg);
 		}
 		setInterval(async () => {
 			invalidate('app:assets');
 		}, refreshInterval);
 	});
+
+	function signerChanged(signer, signerAddress) {
+		if (currentSignerAddress === signerAddress && $tokenContract) {
+			console.log(`+page.svelte# signerChanged notification for ${signerAddress}`);
+			return;
+		}
+		console.log(`+page.svelte# signerChanged ${signerAddress} re-binding signer ? ${!!signer}`);
+		if (!signer) {
+			tokenContract.set(undefined);
+			return;
+		}
+
+		const c = createDiamondProxy(tokenContractAddress, signer);
+		tokenContract.set(c);
+		currentSignerAddress = signerAddress;
+	}
 </script>
 
 <Navbar let:hidden let:toggle>
@@ -83,7 +103,7 @@ ${JSON.stringify(data?.web3auth, null, '  ')}
 		</NavLi>
 		<NavLi href="/" active={true}>Home</NavLi>
 		<NavLi href={RKVST_URL} target="_blank">The RKVST</NavLi>
-		<NavLi><Web3AuthProvider chainswitch={web3auth}/></NavLi>
+		<NavLi><Web3AuthProvider chainswitch={web3auth} /></NavLi>
 	</NavUl>
 </Navbar>
 

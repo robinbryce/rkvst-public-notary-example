@@ -1,4 +1,5 @@
 <script>
+	import { ethers } from 'ethers';
 	import { Drawer, CloseButton } from 'flowbite-svelte';
 	import { Button } from 'flowbite-svelte';
 	import { Spinner } from 'flowbite-svelte';
@@ -11,6 +12,8 @@
 
 	import { selectedEvent } from '$lib/stores/events.js';
 	import { selectedAsset } from '$lib/stores/assets.js';
+	import { tokenContract } from '$lib/stores/receipttokens.js';
+	import { facetInterfaces } from '$lib/web3/rkvsteventtokens.js';
 
 	import { getReceipt } from '$lib/rkvstapi/getreceipt.js';
 	import { getBlock } from '$lib/rkvstapi/getblock';
@@ -19,12 +22,15 @@
 
 	// state
 	let receipt = undefined;
-  let receiptEncodings = undefined;
-  let savedReceipt = undefined;
+	let receiptEncodings = undefined;
+	let savedReceipt = undefined;
+	let savedMetadata = undefined;
 	let worldRoot = undefined;
 	let receiptBlock = undefined;
 	let gettingReceipt = false;
 	let savingReceipt = false;
+	let mintingReceipt = false;
+	let eventDescription = undefined;
 
 	// fixed configuration
 	// let activateClickOutside = false
@@ -44,7 +50,7 @@
 
 	// ----
 	async function saveCurrentReceipt() {
-    console.log(`saveCurrentReceipt: ${savingReceipt} ${receiptEncodings?.base64}`);
+		console.log(`saveCurrentReceipt: ${savingReceipt} ${receiptEncodings?.base64}`);
 		if (savingReceipt) return;
 		if (!receiptEncodings?.base64) return;
 
@@ -62,15 +68,118 @@
 		let resp;
 		savingReceipt = true;
 		try {
-      console.log(`saving receipt: ${url}`);
+			console.log(`saving receipt: ${url}`);
 			resp = await fetch(url, options);
 			savedReceipt = await resp.json();
 		} catch (err) {
-			console.log(`ERROR: saving receipt for ${eventIdentity} ${url} ${resp.statusText} ${err}`);
+			console.log(
+				`ERROR: saving receipt for ${$selectedEvent.identity} ${url} ${resp.statusText} ${err}`
+			);
 			throw err;
 		}
 		console.log(`saved receipt ${JSON.stringify(savedReceipt, null, '  ')}`);
 		savingReceipt = false;
+	}
+
+	function uuidsFromEvent(identity) {
+		const parts = identity.split('/');
+		if (parts[parts.length - 2] != 'events' || !parts[parts.length - 4].endsWith('assets'))
+			throw new Error(
+				`malformed identity ${identity} ${parts[parts.length - 1]} ${
+					parts[parts.length - 4]
+				} ${parts}`
+			);
+		return [parts[parts.length - 3], parts[parts.length - 1]];
+	}
+
+	function uuidToBig(uuid) {
+		return BigInt('0x' + uuid.replace(/-/g, ''));
+	}
+
+	async function mintCurrentReceipt() {
+		console.log(`TODO: mintCurrentReceipt`);
+		const c = $tokenContract;
+		if (!c) {
+			console.log(`no currently bound contract`);
+			return;
+		}
+		if (!receiptEncodings.receiptTokenProofs) {
+			console.log(`proofs not available on receipt`);
+			return;
+		}
+		const event = $selectedEvent;
+		const asset = $selectedAsset;
+		// Be super careful when minting, there are no take backs
+		if (event.asset_identity !== asset.identity)
+			throw new Error(`selected event and selected assets are out of whack`);
+
+		const [assetUUID, eventUUID] = uuidsFromEvent(event.identity);
+		const eventID = uuidToBig(eventUUID);
+
+		const metadata = {
+			title: 'RKVST Event receipt proof',
+			name: event.event_attributes?.arc_display_name ?? 'An un-named event',
+			description: `${eventDescription}`,
+			external_url: savedReceipt.receiptUrl,
+			properties: {
+				receipt_url: savedReceipt.receipt_url,
+				receipt_content_url: savedReceipt.receipt_content_url,
+				identity: event.identity,
+				asset_identity: event.asset_identity
+			}
+		};
+
+		const body = {
+			metadata
+		};
+		let options = {
+			method: 'POST',
+			headers: new Headers([['content-type', 'application/json']]),
+			body: JSON.stringify(body)
+		};
+
+		let url = '/api/nft-storage/store/metadata';
+
+		let resp;
+		mintingReceipt = true;
+		let data;
+		try {
+			console.log(`saving nft: ${url}`);
+			resp = await fetch(url, options);
+			data = await resp.json();
+			savedMetadata = data.metadata;
+		} catch (err) {
+			console.log(`ERROR: saving nft for ${event.identity} ${url} ${resp.statusText} ${err}`);
+			mintingReceipt = false;
+			throw err;
+		}
+		console.log(`nft metadata ${JSON.stringify(data.metadata, null, '  ')}`);
+
+		let tx;
+		let r;
+		try {
+			tx = await c.createReceiptToken(
+				eventID,
+				data.metadata.url,
+				ethers.utils.getAddress(receiptEncodings.payload.account),
+				worldRoot,
+				receiptEncodings.receiptTokenProofs.rlpAccountProof,
+				receiptEncodings.receiptTokenProofs.storageProofs
+			);
+			r = await tx.wait();
+			if (r.status !== 1) throw new Error(`bad status: ${JSON.stringify(r)}`);
+			console.log(`transaction# ${r.transactionHash} ${eventID}`);
+			// for (const log of r.logs) {
+			// 	const event = facetInterfaces.ERC1155Facet.parseLog(log);
+			// 	console.log(`${event.name}: ${JSON.stringify(event.args)}`);
+			// }
+		} catch (err) {
+			console.log(`ERROR: minting nft for ${event.identity} ${url} ${resp.statusText} ${err}`);
+			mintingReceipt = false;
+			throw err;
+		}
+
+		mintingReceipt = false;
 	}
 
 	async function getSelectedEventReceipt() {
@@ -148,7 +257,7 @@
 		class="mb-3 p-2 rounded-md dark:bg-gray-700 font-normal text-gray-700 dark:text-gray-300 leading-tight"
 	>
 		<div class="m-1">
-			<EventDescription event={$selectedEvent} />
+			<EventDescription event={$selectedEvent} bind:description={eventDescription} />
 		</div>
 	</div>
 
@@ -167,7 +276,7 @@
 			Fetch an off line verifiable receipt for an RKVST event from the RKVST
 		</Popover>
 	{:else if !savedReceipt}
-    <!-- TODO: XXX warning about the consequence, and also use case, for
+		<!-- TODO: XXX warning about the consequence, and also use case, for
     publicly sharing the proofs of a restricted event.  Ie, this is feature
     where a customer can *chose* on a per event basis to share an event
     publicly and in an independently verifiable way. -->
@@ -177,14 +286,39 @@
 		<Popover class="w-96 text-sm font-light " triggeredBy="#save_receipt1">
 			Save the receipt to ipfs
 		</Popover>
-	{/if}
-	{#if (gettingReceipt || savingReceipt)}
-		<div
-			class="mb-3 dark:bg-gray-700 font-normal text-gray-700 dark:text-gray-300 leading-tight"
+	{:else if !savedMetadata && $tokenContract}
+		<Button id="mint_receipt1" class="w-full mb-2" on:click={async () => await mintCurrentReceipt()}
+			>Mint Receipt</Button
 		>
-			<p>{gettingReceipt ? 'fetching receipt' : 'saving receipt'}</p>
+		<Popover class="w-96 text-sm font-light " triggeredBy="#mint_receipt1">
+			Mint an NFT for the receipt on polygon mumbai (testnet). copy your account address to the <a
+				href="https://mumbaifaucet.com/">mumbai faucet</a
+			> to get free test crypto to pay for the mint.
+		</Popover>
+	{:else if !$tokenContract}
+		<div
+			class="mb-3 p-2 rounded-md dark:bg-gray-700 font-normal text-gray-700 dark:text-gray-300 leading-tight"
+		>
+			<p>
+				To save your receipt permanently on a public blockchain (testnet), connect a wallet using
+				the "Connect Wallet" button on the main navigation. If you don't have one, just create one
+				using your normal social login using the magic of web3auth
+			</p>
+		</div>
+	{/if}
+	{#if gettingReceipt || savingReceipt || mintingReceipt}
+		<div class="mb-3 dark:bg-gray-700 font-normal text-gray-700 dark:text-gray-300 leading-tight">
+			<p>
+				{gettingReceipt ? 'fetching receipt' : savingReceipt ? 'saving receipt' : 'minting receipt'}
+			</p>
 			<Spinner />
 		</div>
-  {/if}
-	<ReceiptView bind:receipt bind:worldRoot bind:receiptEncodings bind:savedReceipt />
+	{/if}
+	<ReceiptView
+		bind:receipt
+		bind:worldRoot
+		bind:receiptEncodings
+		bind:savedReceipt
+		bind:metadata={savedMetadata}
+	/>
 </Drawer>
