@@ -5,6 +5,7 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 export default defineConfig({
 	logLevel: 'debug',
+  optimizeDeps: { include: ['ethers'] },
 	plugins: [sveltekit(), nodePolyfills({ protocolImports: true })],
 	resolve: {
 		alias: {
