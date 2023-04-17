@@ -11,6 +11,9 @@
 	import SelectedEventsCard from '$components/events/SelectedEventsCard.svelte';
 
 	import { selectedAsset } from '$lib/stores/assets.js';
+	import Web3AuthProvider from '$lib/components/web3/Web3AuthProvider.svelte';
+	import { Web3AuthModalSingleton } from '$lib/web3/web3authsingleton.js';
+	import { Web3AuthModalProviderContext } from '$lib/web3/web3authprovidercontext.js';
 
 	const RKVST_URL = env['PUBLIC_RKVST_URL'];
 	const refreshInterval = env['PUBLIC_RKVST_IO_REFRESH_DEFAULT'] ?? 12000;
@@ -22,6 +25,7 @@
 	let drawerButtonText = 'Select Asset';
 	let selectedAssetName;
 	let selectedIdentity;
+	let web3auth = new Web3AuthModalSingleton({authenticated:undefined});
 
 	$: {
 		if ($selectedAsset) {
@@ -33,8 +37,24 @@
 		}
 	}
 
-	// invalidate only makse sense from the client end
-	onMount(() => {
+	// invalidate only makes sense from the client end
+	onMount(async () => {
+
+		console.log(`
+-----------
+${JSON.stringify(data?.web3auth, null, '  ')}
+-----------
+`);
+
+		if (data?.web3auth?.chains?.length) {
+			await web3auth.prepare(
+				data?.web3auth?.chains ?? [],
+				(cfg) => new Web3AuthModalProviderContext(cfg),
+				{web3authOptions: () => data.web3auth.options ?? {}}
+				);
+			for (const cfg of data?.web3auth?.chains ?? [])
+				await web3auth.addNetwork(cfg);
+		}
 		setInterval(async () => {
 			invalidate('app:assets');
 		}, refreshInterval);
@@ -63,6 +83,7 @@
 		</NavLi>
 		<NavLi href="/" active={true}>Home</NavLi>
 		<NavLi href={RKVST_URL} target="_blank">The RKVST</NavLi>
+		<NavLi><Web3AuthProvider chainswitch={web3auth}/></NavLi>
 	</NavUl>
 </Navbar>
 

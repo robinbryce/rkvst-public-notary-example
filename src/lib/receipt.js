@@ -1,3 +1,5 @@
+import {receiptTokenProofs} from "$lib/web3/rkvsteventtokens.js";
+
 /** this works because we know the payload is json and we know it is encoded
  * with stable sort and exactly what to expect in the first part of the
  * content */
@@ -12,7 +14,12 @@ export class DecodedReceipt {
 			this.payloadText = decodePayloadFromCBOR(this.binary);
 			this.payloadJSONUrl = encodeURI(`data:application/json;charset=utf-8,${this.payloadText}`);
 		}
-		if (this.payloadText) this.payload = JSON.parse(this.payloadText);
+		if (!this.payloadText)
+			return;
+		this.payload = JSON.parse(this.payloadText);
+		console.log(Object.keys(this.payload));
+		console.log(Object.keys(this.payload.named_proofs[0]));
+		this.receiptTokenProofs = receiptTokenProofs(this.payload);
 	}
 }
 
