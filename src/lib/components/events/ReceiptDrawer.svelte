@@ -1,5 +1,7 @@
 <script>
-	import { ethers } from 'ethers';
+	import pkg from 'ethers';
+	const { ethers } = pkg;
+
 	import { Drawer, CloseButton } from 'flowbite-svelte';
 	import { Button } from 'flowbite-svelte';
 	import { Spinner } from 'flowbite-svelte';
@@ -13,7 +15,6 @@
 	import { selectedEvent } from '$lib/stores/events.js';
 	import { selectedAsset } from '$lib/stores/assets.js';
 	import { tokenContract } from '$lib/stores/receipttokens.js';
-	import { facetInterfaces } from '$lib/web3/rkvsteventtokens.js';
 
 	import { getReceipt } from '$lib/rkvstapi/getreceipt.js';
 	import { getBlock } from '$lib/rkvstapi/getblock';
