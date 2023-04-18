@@ -2,9 +2,12 @@
 
 ## Where can I see it ?
 
-On our favourite svelte hosting provider, vercel at this link [rkvst-public-notary-example.vercel.app](https://rkvst-public-notary-example.vercel.app/)
+On our favourite svelte hosting provider, vercel.
 
-(Please note this is subject to rate limits)
+**THIS IS THE HACKATHON DEMO LINK**: [hackathon demo](https://rkvst-public-notary-example-fb5haw2jd-robinbryce.vercel.app/)
+* This is the code commit at that time. It worked locally but not on vercel. https://github.com/robinbryce/rkvst-public-notary-example/commit/abd47574742b2cd8a3b083d069dbaf579f4784dc
+* This [demo that missed the deadline](https://rkvst-public-notary-example.vercel.app/) is after fixing the bug that broke the deployment.
+* This is the corresponding commit https://github.com/robinbryce/rkvst-public-notary-example/commit/a68e8c3c7429b165f7bdc211c8bd8e05f8aac9f8
 
 ## What is this demo about ?
 
@@ -13,8 +16,6 @@ For the [Svelte Hackathon](https://hack.sveltesociety.dev/) we thought it would 
 This demo show cases an up coming feature on the RKVST platform which enables off line and independently verifiable "proof of posting" for records stored in the RKVST. This is part of our commitment to solving problems with software supply chain integrity. We recently showcased this at an [IETF hackathon](https://www.rkvst.com/press_releases/rkvst-showcases-supply-chain-integrity-transparency-and-trust-implementation-at-ietf-116-hackathon/)
 
 These receipts are verifiable using standard ethereum tools or, if you prefer the convenience, our [open source tool](https://github.com/rkvst/rkvst-receipt-scitt)
-
-But once you have a receipt where do you put it ? In this demo we put it in IPFS
 
 But once you have a receipt where do you put it ? In this demo we put it in IPFS
 
