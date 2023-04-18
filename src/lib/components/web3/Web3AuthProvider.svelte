@@ -11,7 +11,7 @@
 	$: refreshMenu(dropdownOpen);
 
 	function refreshMenu(open) {
-		if (!open) return;
+		if (!open || !chainswitch) return;
 		contexts = chainswitch.contexts();
 		current = chainswitch.getCurrent();
 	}
@@ -22,7 +22,7 @@
 	<div slot="header" class="px-4 py-2">
 		{#if $currentUserInfo}
 			<span class="block text-sm text-gray-900 dark:text-white">
-				{chainswitch.currentUserInfo?.email ?? 'email unknown'}
+				{$currentUserInfo?.email ?? 'email unknown'}
 			</span>
 			<span class="block truncate text-sm font-medium" />
 			{#if current?.signerAddress}
@@ -38,7 +38,7 @@
 			<span class="block text-sm text-gray-900 dark:text-white">Not logged in </span>
 		{/if}
 	</div>
-	{#if contexts.length > 0}
+	{#if (contexts.length > 0 && !!chainswitch)}
 		{#each contexts as ctx}
 			<DropdownItem
 				on:click={() => {
