@@ -30,13 +30,7 @@
 	let drawerButtonText = 'Select Asset';
 	let selectedAssetName;
 	let selectedIdentity;
-	let web3auth = new Web3AuthModalSingleton({
-		authenticated: (state, current) => {
-			console.log(`+page.svelte# authenticated ${state} ${current.name}`);
-			currentUserInfo.set(state ? current : undefined);
-		},
-		signerChanged
-	});
+	let web3auth;
 	let currentSignerAddress;
 
 	$: {
@@ -52,6 +46,13 @@
 	// invalidate only makes sense from the client end
 	onMount(async () => {
 		if (data?.web3auth?.chains?.length) {
+			web3auth = new Web3AuthModalSingleton({
+				authenticated: (state, current) => {
+					console.log(`+page.svelte# authenticated ${state} ${current.name}`);
+					currentUserInfo.set(state ? current : undefined);
+				},
+				signerChanged
+			});
 			await web3auth.prepare(
 				data?.web3auth?.chains ?? [],
 				(cfg) => new Web3AuthModalProviderContext({ ...cfg, signerChanged }),
@@ -103,7 +104,7 @@
 		</NavLi>
 		<NavLi href="/" active={true}>Home</NavLi>
 		<NavLi href={RKVST_URL} target="_blank">The RKVST</NavLi>
-		<NavLi><Web3AuthProvider chainswitch={web3auth} /></NavLi>
+		<NavLi><Web3AuthProvider bind:chainswitch={web3auth} /></NavLi>
 	</NavUl>
 </Navbar>
 
