@@ -8,7 +8,7 @@ export default defineConfig({
   optimizeDeps: { include: ['ethers'] },
 	build: {
 		rollupOptions: {
-			external: ['ethers']
+			external: ['ethers', '@web3auth/modal']
 		}
 	},
 	plugins: [sveltekit(), nodePolyfills({ protocolImports: true })],
