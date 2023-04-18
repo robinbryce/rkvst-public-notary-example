@@ -1,6 +1,5 @@
 import { ethers } from 'ethers';
-import pkg2 from '@web3auth/modal';
-const { Web3Auth } = pkg2;
+import { Web3Auth } from '@web3auth/modal';
 
 import { awaitable, isFunction } from '../idioms.js';
 import { ChainSwitch } from './chainswitch.js';
