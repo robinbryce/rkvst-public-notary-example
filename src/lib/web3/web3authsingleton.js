@@ -1,5 +1,4 @@
-import pkg1 from 'ethers';
-const { ethers } = pkg1;
+import { ethers } from 'ethers';
 import pkg2 from '@web3auth/modal';
 const { Web3Auth } = pkg2;
 

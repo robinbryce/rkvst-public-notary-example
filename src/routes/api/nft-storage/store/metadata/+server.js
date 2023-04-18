@@ -1,9 +1,8 @@
+import { ethers } from 'ethers';
+
 import * as env from '$env/static/public';
 import { env as secrets } from '$env/dynamic/private';
 import { error } from '@sveltejs/kit';
-
-import pkg from 'ethers';
-const { ethers } = pkg;
 
 import { NFTStorage } from 'nft.storage';
 

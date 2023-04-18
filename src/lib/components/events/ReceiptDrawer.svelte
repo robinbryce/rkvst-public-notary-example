@@ -1,6 +1,5 @@
 <script>
-	import pkg from 'ethers';
-	const { ethers } = pkg;
+	import { ethers } from 'ethers';
 
 	import { Drawer, CloseButton } from 'flowbite-svelte';
 	import { Button } from 'flowbite-svelte';

@@ -1,5 +1,4 @@
-import pkg from 'ethers';
-const { ethers } = pkg;
+import { ethers } from 'ethers';
 
 import { createERC2535Proxy } from 'rkvst-event-tokens';
 

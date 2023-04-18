@@ -1,5 +1,4 @@
-import pkg from 'ethers';
-const { ethers } = pkg;
+import { ethers } from 'ethers';
 
 import { isAsync, isUndefined, etherrmsg, constructedLikeClass, isFunction } from '../idioms.js';
 

@@ -1,5 +1,4 @@
-import pkg from 'ethers';
-const { ethers } = pkg;
+import { ethers } from 'ethers';
 
 import { EIP1193ProviderContext } from './eip1183providercontext.js';
 
