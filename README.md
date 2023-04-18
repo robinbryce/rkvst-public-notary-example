@@ -14,7 +14,28 @@ This demo show cases an up coming feature on the RKVST platform which enables of
 
 These receipts are verifiable using standard ethereum tools or, if you prefer the convenience, our [open source tool](https://github.com/rkvst/rkvst-receipt-scitt)
 
-But once you have a receipt where do you put it ? In this demo we put it in IPFS.
+But once you have a receipt where do you put it ? In this demo we put it in IPFS
+
+But once you have a receipt where do you put it ? In this demo we put it in IPFS
+
+**NOTICE: the following feature was not available in the vercel demo in time for the hackathon close**
+
+AND, then we mint an NFT. The NFT mint is only allowed if a valid merkle inclusion proof is presented.
+
+For hackathon close we only had saving the receipts to IPFS fully integrated
+
+> This is the PR that fixed the deployment issue: https://github.com/robinbryce/rkvst-public-notary-example/tree/vercel-build-fix-ethers-web3auth
+
+
+
+An integration with web3auth enabling you to use your normal social logins to create web3 wallets is provided. To mint you will need to copy the address of your wallet (under the connect button after you connect) and go to the https://mumbaifaucet.com/
+
+Once the token is minted you can see it on open sea if you take the contract address "0xd3bFcaA65144F0f7f4328F4fD7b3f245b3525a74" and search for it on its mumbai pages.
+
+The ERC1155 / ERC2535 contracts were also built for this hackathon. The are in
+this repo https://github.com/robinbryce/rkvst-event-tokens
+
+The seperate repo makes it easier to manage the web3/solidity dependencies
 
 ## What is the RKVST ?
 
