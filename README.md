@@ -30,12 +30,12 @@ For hackathon close we only had saving the receipts to IPFS fully integrated
 
 An integration with web3auth enabling you to use your normal social logins to create web3 wallets is provided. To mint you will need to copy the address of your wallet (under the connect button after you connect) and go to the https://mumbaifaucet.com/
 
-Once the token is minted you can see it on open sea if you take the contract address "0xd3bFcaA65144F0f7f4328F4fD7b3f245b3525a74" and search for it on its mumbai pages.
+Once the token is minted you can see it on open sea if you take the contract address "0xd3bFcaA65144F0f7f4328F4fD7b3f245b3525a74" and search for it on [opensea](https://testnets.opensea.io/collection/unidentified-contract-15322) or the [mumbai explorer](https://mumbai.polygonscan.com/address/0xd3bFcaA65144F0f7f4328F4fD7b3f245b3525a74).
 
 The ERC1155 / ERC2535 contracts were also built for this hackathon. The are in
 this repo https://github.com/robinbryce/rkvst-event-tokens
 
-The seperate repo makes it easier to manage the web3/solidity dependencies
+The separate repo makes it easier to manage the web3/solidity dependencies
 
 ## What is the RKVST ?
 
