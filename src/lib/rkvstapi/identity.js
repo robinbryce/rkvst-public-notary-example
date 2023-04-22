@@ -1,5 +1,5 @@
 export function uuidFromIdentity(identity) {
-	const parts = identity.split('/', 2);
+	const parts = identity.split('/');
 	return (parts.length && parts[parts.length - 1]) || identity;
 }
 export function uuidAbbrev(uuid) {

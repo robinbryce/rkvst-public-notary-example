@@ -5,11 +5,36 @@ import { receiptTokenProofs } from '$lib/web3/rkvsteventtokens.js';
  * content */
 const receiptCBORJSONMagicMarker = '{"application_parameters"';
 
-export class DecodedReceipt {
-	constructor(receipt) {
-		this.base64 = receipt;
-		this.binary = atob(receipt); // ref: draft-birkholz-scitt-receipts
-		this.receiptUrl = encodeURI(`data:text/plain;charset=ascii,${receipt}`);
+export class ReceiptDetails {
+
+	static fromReceipt(base64receipt) {
+
+		const receipt = new ReceiptDetails();
+		receipt.setReceipt(base64receipt)
+		return receipt;
+	}
+
+	static copy(other) {
+		const rd = new ReceiptDetails();
+		rd.base64 = other.base64;
+		rd.binary = other.binary;
+		rd.receiptUrl = other.receiptUrl;
+		rd.payloadText = other.payloadText;
+		rd.payloadJSONUrl = other.payloadJSONUrl;
+		rd.payload = structuredClone(other.payload);
+		rd.receiptTokenProofs = structuredClone(other.receiptTokenProofs);
+		rd.ipfs = structuredClone(other.ipfs);
+		rd.metadata = structuredClone(other.metadata);
+		return rd
+	}
+
+	/**
+	 * reset and initialise from a base64 receipt
+	 */
+	setReceipt(base64Receipt) {
+		this.base64 = base64Receipt;
+		this.binary = atob(base64Receipt); // ref: draft-birkholz-scitt-receipts
+		this.receiptUrl = encodeURI(`data:text/plain;charset=ascii,${base64Receipt}`);
 		if (this.binary) {
 			this.payloadText = decodePayloadFromCBOR(this.binary);
 			this.payloadJSONUrl = encodeURI(`data:application/json;charset=utf-8,${this.payloadText}`);
@@ -19,6 +44,30 @@ export class DecodedReceipt {
 		console.log(Object.keys(this.payload));
 		console.log(Object.keys(this.payload.named_proofs[0]));
 		this.receiptTokenProofs = receiptTokenProofs(this.payload);
+
+		this.ipfs = {
+			directory_cid: undefined,
+			receipt_url: undefined,
+			receipt_content_url: undefined
+		}
+		// ERC 1155 metadata
+		this.metadata = undefined;
+	}
+
+	updateIPFS(ipfs) {
+		this.ipfs.directory_cid = ipfs.directory_cid;
+		this.ipfs.receipt_url = ipfs.receipt_url;
+		this.ipfs.receipt_content_url = ipfs.receipt_content_url;
+	}
+	isSaved() {
+		return (!!this.ipfs?.directory_cid && !!this.ipfs.receipt_url && !!this.ipfs.receipt_content_url)
+	}
+
+	updateMetadata(metadata) {
+		this.metadata = structuredClone(metadata);
+	}
+	isMinted() {
+		return !!this.metadata;
 	}
 }
 

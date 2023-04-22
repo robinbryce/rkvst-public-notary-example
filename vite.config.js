@@ -5,8 +5,7 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 export default defineConfig({
 	logLevel: 'debug',
-  // optimizeDeps: { include: ['ethers', '@web3auth/modal'] },
-	// mode: 'development',
+  optimizeDeps: { include: ['ethers', '@web3auth/modal'] },
 	plugins: [
 		sveltekit(), nodePolyfills({ protocolImports: true })
 	],

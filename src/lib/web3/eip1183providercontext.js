@@ -71,9 +71,11 @@ export class EIP1193ProviderContext {
 			try {
 				if (isAsync(signerChanged)) {
 					await signerChanged(signer, signerAddress);
+					log.info(`signerChanged async callback complete`);
 					return;
 				}
 				signerChanged(signer, signerAddress);
+				log.info(`signerChanged callback complete`);
 			} catch (err) {
 				log.info(`error calling signerChanged callback ${err}`);
 			}
