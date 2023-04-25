@@ -1,9 +1,48 @@
 import { receiptTokenProofs } from '$lib/web3/rkvsteventtokens.js';
 
+import { jsonFetchIPFS, ipfsGatewayURL } from '$lib/web3/ipfsfetch.js';
+
 /** this works because we know the payload is json and we know it is encoded
  * with stable sort and exactly what to expect in the first part of the
  * content */
 const receiptCBORJSONMagicMarker = '{"application_parameters"';
+
+export class ReceiptMetadata {
+
+	static async fromTokenURI(tokenId, tokenURI, options) {
+		const rm = new ReceiptMetadata(tokenId, tokenURI);
+		return await rm.fetch(options)
+
+	}
+	constructor (tokenURI, tokenId) {
+		this.tokenId = tokenId;
+		this.fromTokenURI = tokenURI;
+		this.identity = undefined;
+		this.receipt = undefined;
+		this.image = undefined;
+		this.metadata = undefined;
+	}
+
+	async fetch(options) {
+
+		this.metadata = await jsonFetchIPFS(this.tokenURI, options);
+		const base64receipt = await textFetchIPFS(metadata.receipt_url);
+
+		this.image = ipfsGatewayURL(metadata.image);
+
+		const parts = this.tokenURI.split('/');
+		// regardless of http vs ipfs, the directory cid is the last path element before metadata.json
+
+		const directory_cid = parts[parts.length - 2];
+
+		this.receipt = ReceiptDetails.fromReceipt(base64receipt);
+		this.receipt.updateIPFS({
+			directory_cid,
+			receipt_url:metadata.receipt_url,
+			receipt_content_url: metadata.receipt_content_url
+		})
+	}
+}
 
 export class ReceiptDetails {
 

@@ -2,7 +2,7 @@
 	import { ethers } from 'ethers';
 	import * as env from '$env/static/public';
 	import { invalidate } from '$app/navigation';
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount } from 'svelte';
 
 	import { Navbar, NavBrand, NavLi, NavUl, NavHamburger } from 'flowbite-svelte';
 	import { Button } from 'flowbite-svelte';
@@ -14,9 +14,9 @@
 
 	import { Web3AuthModalSingleton } from '$lib/web3/web3authsingleton.js';
 	import { Web3AuthModalProviderContext } from '$lib/web3/web3authprovidercontext.js';
-	import { wrapEventHandler } from '$lib/web3/eventhandler.js';
 	import { createProxy as createDiamondProxy } from '$lib/web3/rkvsteventtokens.js';
 
+	import { chainSwitch } from '$lib/stores/chainswitch.js';
 	import { signerAddress } from '$lib/stores/signeraddress.js';
 	import { selectedAsset } from '$lib/stores/assets.js';
 	import { tokenContract } from '$lib/stores/tokencontract.js';
@@ -32,55 +32,16 @@
 	let receiptDrawerHidden = true;
 	let drawerButtonText = 'Select Asset';
 	let selectedAssetName;
-	let selectedIdentity;
 	let web3auth;
-
-	// TransferSingle listening, to keep track of receipts
-  let filter = undefined;
-  let listener = undefined;
-  let listeningOn = undefined;
 
 	$: {
 		if ($selectedAsset) {
 			selectedAssetName = $selectedAsset.attributes?.arc_display_name;
-			selectedIdentity = $selectedAsset.identity;
 			drawerButtonText = `Change Asset (${selectedAssetName})`;
 		} else {
 			drawerButtonText = 'Select Asset';
 		}
 	}
-
- 	tokenContract.subscribe(async (c)=>{
-    stopListening();
-    if (!c) {
-      return;
-    }
-		console.log(`+page.svelte# tokenContract.subscribe creating filter`);
-		const address = await c.signer?.getAddress();
-		if (!address) {
-			console.log(`signer address not available on contract instance for ${c.address}`);
-			return;
-		}
-
-    // Filter for any mints to the current signer.
-		const signature = 'TransferSingle(address,address,address,uint256,uint256)'
-		// const signature = 'TransferSingle'
-		console.log(`+page.svelte# tokenContract.subscribe getting filter for "${signature}" [null, ${ethers.constants.AddressZero}, ${address}]`);
-		console.log(`+page.svelte# tokenContract.subscribe getFilter ${c.getFilter?.constructor?.name} ${c.getFilter}`);
-    filter = c.getFilter(
-      signature,
-      null,
-      ethers.constants.AddressZero,
-			address
-    );
-
-		console.log(`+page.svelte# tokenContract.subscribe wrapping handler`);
-    listener = wrapEventHandler(c, handleTransferSingle);
-		console.log(`+page.svelte# tokenContract.subscribe wrapped handler`);
-    c.on(filter, listener);
-    listeningOn = c;
-		console.log(`+page.svelte# tokenContract.subscribe listening for ${signature}[null, ${ethers.constants.AddressZero}, ${address}]`);
-  });
 
 	// invalidate only makes sense from the client end
 	onMount(async () => {
@@ -98,26 +59,13 @@
 				{ web3authOptions: () => data.web3auth.options ?? {} }
 			);
 			for (const cfg of data?.web3auth?.chains ?? []) await web3auth.addNetwork(cfg);
+			chainSwitch.set(web3auth);
 		}
 		setInterval(async () => {
 			invalidate('app:assets');
 		}, refreshInterval);
 	});
 
-  onDestroy(()=>{
-    stopListening();
-  })
-
-  function stopListening() {
-    if (filter && listeningOn && listener) {
-      listeningOn.off(filter, listener);
-      filter = listener = listeningOn = undefined;
-    } 
-  }
-
-  function handleTransferSingle(event) {
-		console.log(`${event.name} ${event.signature} ${JSON.stringify(event.args)}`);
-  }
 	function signerChanged(signer, address) {
 		if ($signerAddress === address && $tokenContract) {
 			console.log(`+page.svelte# signerChanged notification for ${signerAddress}`);

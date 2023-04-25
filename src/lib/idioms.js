@@ -33,6 +33,12 @@ export function isFunction(value) {
 	return value?.constructor?.name === 'Function';
 }
 
+export async function awaitIfNecessary(callback, ...args) {
+	if (awaitable(callback))
+		return await callback(...args);
+	return callback(...args);
+}
+
 /**
  * A variant of instanceof that also considers if o.constructor.name ===
  * class_.name Works where objects are passed across package boundaries, where
