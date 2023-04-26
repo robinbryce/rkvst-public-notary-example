@@ -60,3 +60,18 @@ export function etherrmsg(err) {
 		return `${err}`;
 	}
 }
+
+/** Given an ethers.BigNumber or a BigInt return the hex string representation.
+ * If the argument is already a string, require a 0x prefix */
+export function bigishToHex(id) {
+  if (id.constructor.name === "BigNumber") {
+    return id.toHexString();
+  } else if (id.constructor.name === "BigInt") {
+    return id.toString();
+  } else if (id.constructor.name !== "String") {
+    throw new Error(`cant convert ${id.constructor.name} to hex string`);
+  } else if (!id.startsWith("0x")) {
+    throw new Error(`${id} does not have the expected 0x hex prefix`);
+  }
+  return id;
+}

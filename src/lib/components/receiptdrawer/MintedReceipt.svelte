@@ -1,100 +1,124 @@
 <script>
   import { ethers } from 'ethers';
+
+  import { readable } from 'svelte/store';
 	import { Listgroup, ListgroupItem } from 'flowbite-svelte';
+	import { A, Img } from 'flowbite-svelte';
 	import CopyIconLink from '$lib/components/utility/CopyIconLink.svelte';
 	const mountClass =
 		'mb-6 dark:bg-gray-700 font-normal text-gray-700 dark:text-gray-300 leading-tight';
 
   import { ReceiptMetadata } from '$lib/receipt.js';
-	import { selectedEvent } from '$lib/stores/events.js';
-	import { firstMatchingReceipt } from '$lib/stores/web3/firstfilteredevent.js';
-  import { uuidFromIdentity } from '$lib/rkvstapi/identity.js';
-	import { tokenContract } from '$lib/stores/tokencontract.js';
+  import { matchLastReceipt, createTokenMSBMatcher, receiptLogBySignature } from '$lib/web3/matchevents.js';
+  import { ipfsGatewayURL } from '$lib/web3/ipfsfetch.js';
+
+  import { receiptTokenID, receiptHexUUID } from '$lib/rkvstapi/identity.js';
   import { parseEventLog } from '$lib/web3/eventhandler.js';
+  import * as erc1155 from '$lib/web3/erc1155.js';
+
+	import { selectedEvent } from '$lib/stores/events.js';
+	import { firstMatchingReceipt } from '$lib/stores/web3/firstmatchingreceipt.js';
+  import { chainSwitch } from '$lib/stores/chainswitch.js';
+	import { tokenContract } from '$lib/stores/tokencontract.js';
 	import { signerAddress } from '$lib/stores/signeraddress.js';
 
   const log = console;
 
   let receiptTokenTransfer;
   let mintedReceipt = undefined;
+  let openseaAssetsURL = undefined;
+  let rkvstEventTokensAddress = undefined;
+  let openseaTokenURL = undefined;
+
+  $: {
+    openseaAssetsURL = $chainSwitch?.getCurrent()?.cfg?.openseaAssetsURL;
+    rkvstEventTokensAddress = $chainSwitch?.getCurrent()?.cfg?.rkvstEventTokensAddress;
+    if (mintedReceipt)
+      openseaTokenURL = openseaAssetsURL + rkvstEventTokensAddress + '/' + mintedReceipt?.tokenId?.toString()
+  }
 
   // Note: signerAddress is always set *immediately after* the new contract
   // instance is bound. So by reacting to signerAddress only, we are sure the
   // tokenContract is in sync before we get the notification.
-  $: receiptTokenTransfer = firstReceiptStore($signerAddress, $selectedEvent);
+  // $: receiptTokenTransfer = firstReceiptStore($signerAddress, $selectedEvent);
+  $: receiptTokenTransfer = lastReceiptStore($signerAddress, $selectedEvent);
 
-  function firstReceiptStore($signerAddress, selectedEvent) {
+  function lastReceiptStore($signerAddress, $selectedEvent) {
     if (!$signerAddress || !$tokenContract || !selectedEvent) {
       log.info(`MintedReceipt# firstReceiptStore tokenContract and selectedEvent not available yet`);
       return;
     }
-	  const signature = 'TransferSingle(address,address,address,uint256,uint256)';
+    log.info(`MintedReceipt# start store`);
 
-    // 0x92a1c7b553f2446d9661e2754802ba3800000000000000000000000000000001
+    const matchTarget = receiptHexUUID($selectedEvent);
+    const matcher = createTokenMSBMatcher(matchTarget);
 
-    log.debug(`MintedReceipt# firstReceiptStore selectedEvent.identity ${selectedEvent.identity}`);
-    const id = receiptTokenID(selectedEvent);
-    log.debug(`MintedReceipt# firstReceiptStore expecting receipt token id ${id}`);
+    const store = readable(undefined, function start(set){
+      log.info(`MintedReceipt# start store!!`);
+      (async () => {
+        const match = await matchLastReceipt(
+          matcher, $tokenContract,
+          erc1155.TransferSingleSignature, null, ethers.constants.AddressZero, $signerAddress);
 
-    function matcher(event) {
-      if (event?.args?.id.toHexString() === id.toHexString())
-        return event;
-      log.info(`MintedReceipt# ${id.toHexString()} != ${event?.args?.id?.toHexString()} in ${JSON.stringify(event)}`);
-      return undefined;
-    }
+        set(match);
+      })();
 
-    const match = firstMatchingReceipt(
-      matcher, $tokenContract, signature, null, ethers.constants.AddressZero, $signerAddress);
+      return () => {log.info(`xxxxxxxx xxxxxxxxxxxxxx xxxxxxxx`)}
+    });
 
-    match.subscribe(async (value) => {
+    store.subscribe(async (value) => {
       if (!value) return;
 
       const {receipt} = value;
 
-      const URISignature = ethers.utils.id(ethers.utils.EventFragment.fromString("URI(string,uint256)").format());
-      console.log(`URISignature: ${URISignature}`);
-      for (const log of receipt.logs) {
-        if (log.topics[0] !== URISignature) continue
+      const uriEvent = receiptLogBySignature(receipt, erc1155.URISignature, $tokenContract);
 
-        console.log(`HORAY!!! matched uri signature`);
-        const uriEvent = parseEventLog($tokenContract, log);
-        console.log(`${JSON.stringify(uriEvent.args)}`);
-        const [metadataURI, tokenId] = uriEvent.args;
-        mintedReceipt = ReceiptMetadata.fromTokenURI(tokenId, metadataURI)
-        break;
-      }
+      console.log(`${JSON.stringify(uriEvent.args)}`);
+      const [metadataURI, tokenId] = uriEvent.args;
+      mintedReceipt = await ReceiptMetadata.fromTokenURI(tokenId, metadataURI);
     });
-    // subscribe to event arrival
-    // subscribe to chainSwitch store
-    // get the transaction receipt for the log from the provider
-    // get the signature for the URL() event
-    // find the log in the transaction receipt for the URL setting
-    // use the URL to fetch the metadata
+
+    return store;
   }
 
-
-  function receiptTokenID(event, which = 1) {
-    const uuid = uuidFromIdentity(event.identity).replace(/-/g, '');
-    let id = ethers.BigNumber.from('0x' + uuid + ethers.utils.hexZeroPad('0x0', 16).slice(2));
-    id = id.add(which);
-    return id;
-  }
 
 </script>
 <div class="{mountClass}">
   <Listgroup active class="w-full">
+    {#if mintedReceipt}
+    {#if {openseaTokenURL}}
   	<ListgroupItem class="text-base font-semibold gap-2">
-  		item one {receiptTokenID($selectedEvent).toHexString()}
-  		<CopyIconLink getText={() => `${receiptTokenID($selectedEvent).toHexString()}`} />
+      <A href={openseaTokenURL} target="_blank">OpenSea NFT</A>
+  	</ListgroupItem>
+    {/if}
+  	<ListgroupItem class="text-base font-semibold gap-2">
+      {mintedReceipt?.tokenId?.toHexString()}
+  		<CopyIconLink getText={() => mintedReceipt?.tokenId?.toHexString()} />
   	</ListgroupItem>
   	<ListgroupItem class="text-base font-semibold gap-2">
-      {#if $receiptTokenTransfer}
-        {JSON.stringify(Object.keys($receiptTokenTransfer))}
-      {:else}
-        token not found yet
-      {/if}
-  		<CopyIconLink getText={() => `${receiptTokenID($selectedEvent)}`} />
+      {mintedReceipt?.tokenId?.toString()}
+  		<CopyIconLink getText={() => mintedReceipt?.tokenId?.toString()} />
   	</ListgroupItem>
 
+  	<ListgroupItem class="text-base font-semibold gap-2">
+      <A href={mintedReceipt.gatewayURI} target="_blank">metadata.json</A>
+  	</ListgroupItem>
+  	<ListgroupItem class="text-base font-semibold gap-2">
+      <A href={ipfsGatewayURL(mintedReceipt.receipt.ipfs.receipt_url)} target="_blank">receipt.b64.txt</A>
+  	</ListgroupItem>
+  	<ListgroupItem class="text-base font-semibold gap-2">
+      <A href={ipfsGatewayURL(mintedReceipt.receipt.ipfs.receipt_content_url)} target="_blank">receipt-content.json</A>
+  	</ListgroupItem>
+
+    {#if mintedReceipt.image}
+  	<ListgroupItem class="text-base font-semibold gap-2">
+      <Img src="{mintedReceipt.image}" alt="token image" size="max-w-xs" class="rounded-lg" />
+  	</ListgroupItem>
+    {/if}
+    {:else}
+  	<ListgroupItem class="text-base font-semibold gap-2">
+      token not found yet
+  	</ListgroupItem>
+    {/if}
   </Listgroup>
 </div>

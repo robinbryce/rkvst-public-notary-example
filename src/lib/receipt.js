@@ -1,6 +1,6 @@
 import { receiptTokenProofs } from '$lib/web3/rkvsteventtokens.js';
 
-import { jsonFetchIPFS, ipfsGatewayURL } from '$lib/web3/ipfsfetch.js';
+import { jsonFetchIPFS, textFetchIPFS, ipfsGatewayURL } from '$lib/web3/ipfsfetch.js';
 
 /** this works because we know the payload is json and we know it is encoded
  * with stable sort and exactly what to expect in the first part of the
@@ -11,12 +11,14 @@ export class ReceiptMetadata {
 
 	static async fromTokenURI(tokenId, tokenURI, options) {
 		const rm = new ReceiptMetadata(tokenId, tokenURI);
-		return await rm.fetch(options)
-
+		await rm.fetch(options)
+		return rm;
 	}
-	constructor (tokenURI, tokenId) {
+
+	constructor (tokenId, tokenURI) {
 		this.tokenId = tokenId;
-		this.fromTokenURI = tokenURI;
+		this.tokenURI = tokenURI;
+		this.gatewayURI = ipfsGatewayURL(tokenURI);
 		this.identity = undefined;
 		this.receipt = undefined;
 		this.image = undefined;
@@ -26,9 +28,9 @@ export class ReceiptMetadata {
 	async fetch(options) {
 
 		this.metadata = await jsonFetchIPFS(this.tokenURI, options);
-		const base64receipt = await textFetchIPFS(metadata.receipt_url);
+		const base64receipt = await textFetchIPFS(this.metadata.properties.receipt_url);
 
-		this.image = ipfsGatewayURL(metadata.image);
+		this.image = ipfsGatewayURL(this.metadata.image);
 
 		const parts = this.tokenURI.split('/');
 		// regardless of http vs ipfs, the directory cid is the last path element before metadata.json
@@ -38,8 +40,8 @@ export class ReceiptMetadata {
 		this.receipt = ReceiptDetails.fromReceipt(base64receipt);
 		this.receipt.updateIPFS({
 			directory_cid,
-			receipt_url:metadata.receipt_url,
-			receipt_content_url: metadata.receipt_content_url
+			receipt_url:this.metadata.properties.receipt_url,
+			receipt_content_url: this.metadata.properties.receipt_content_url
 		})
 	}
 }
@@ -80,8 +82,6 @@ export class ReceiptDetails {
 		}
 		if (!this.payloadText) return;
 		this.payload = JSON.parse(this.payloadText);
-		console.log(Object.keys(this.payload));
-		console.log(Object.keys(this.payload.named_proofs[0]));
 		this.receiptTokenProofs = receiptTokenProofs(this.payload);
 
 		this.ipfs = {

@@ -9,6 +9,8 @@
   </svelte:fragment>
 </ButtonWithPopover>
 <script>
+	import * as env from '$env/static/public';
+
 	import { ethers } from 'ethers';
 
   import ButtonWithPopover from "$lib/components/utility/ButtonWithPopover.svelte";
@@ -23,8 +25,14 @@
   export let minting = false;
 	export let storeURL = '/api/nft-storage/store/metadata';
 
+	function toIdentityURL(identity) {
+		if (!(identity.startsWith("publicassets") || identity.startsWith("assets")))
+			throw new Error(`invalid identity ${identity}`)
+		// Note the PUBLIC here means PUBLIC in the vercel dot env sense, nothing to do with rkvst
+		return env["PUBLIC_RKVST_URL"] + 'archivist/v2/' + identity
+	}
+
 	async function mintCurrentReceipt() {
-		console.log(`TODO: mintCurrentReceipt`);
 		const c = $tokenContract;
 		if (!c) {
 			console.log(`no currently bound contract`);
@@ -47,12 +55,12 @@
 			title: 'RKVST Event receipt proof',
 			name: event.event_attributes?.arc_display_name ?? 'An un-named event',
 			description: `${eventDescription}`,
-			external_url: $receipt.ipfs.receiptUrl,
+			external_url: toIdentityURL(event.identity),
 			properties: {
 				receipt_url: $receipt.ipfs.receipt_url,
 				receipt_content_url: $receipt.ipfs.receipt_content_url,
-				identity: event.identity,
-				asset_identity: event.asset_identity
+				rkvst_event_url: toIdentityURL(event.identity),
+				rkvst_asset_url: toIdentityURL(event.asset_identity)
 			}
 		};
 

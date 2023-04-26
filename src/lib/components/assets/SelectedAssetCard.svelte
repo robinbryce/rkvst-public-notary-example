@@ -69,9 +69,3 @@
 		{/if}
 	</Card>
 </div>
-
-<style>
-	.code {
-		white-space: pre-wrap;
-	}
-</style>
