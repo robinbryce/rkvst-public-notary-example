@@ -8,6 +8,8 @@ On our favourite svelte hosting provider, vercel.
 * This is the code commit at that time. It worked locally but not on vercel. https://github.com/robinbryce/rkvst-public-notary-example/commit/abd47574742b2cd8a3b083d069dbaf579f4784dc
 * This [demo that missed the deadline](https://rkvst-public-notary-example.vercel.app/) is after fixing the bug that broke the deployment.
 * This is the corresponding commit https://github.com/robinbryce/rkvst-public-notary-example/commit/a68e8c3c7429b165f7bdc211c8bd8e05f8aac9f8
+*
+* This is the development link: [current demo](https://rkvst-public-notary-example.staging.robinbryce.dev/)
 
 ## What is this demo about ?
 

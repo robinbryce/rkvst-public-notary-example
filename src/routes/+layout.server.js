@@ -29,7 +29,8 @@ export async function load({ fetch, depends }) {
 			currency: 'MATIC',
 			url: env['PUBLIC_MUMBAI_URL'],
 			polling: env['PUBLIC_MUMBAI_POLLING'] ?? 2000,
-			rkvstEventTokensAddress: env['PUBLIC_MUMBAI_RKVST_EVENT_TOKENS_ADDRESS']
+			rkvstEventTokensAddress: env['PUBLIC_MUMBAI_RKVST_EVENT_TOKENS_ADDRESS'],
+			openseaAssetsURL: env['PUBLIC_MUMBAI_OPENSEA_ASSETS_URL']
 		}
 	];
 

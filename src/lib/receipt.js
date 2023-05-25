@@ -1,24 +1,112 @@
 import { receiptTokenProofs } from '$lib/web3/rkvsteventtokens.js';
 
+import { jsonFetchIPFS, textFetchIPFS, ipfsGatewayURL } from '$lib/web3/ipfsfetch.js';
+
 /** this works because we know the payload is json and we know it is encoded
  * with stable sort and exactly what to expect in the first part of the
  * content */
 const receiptCBORJSONMagicMarker = '{"application_parameters"';
 
-export class DecodedReceipt {
-	constructor(receipt) {
-		this.base64 = receipt;
-		this.binary = atob(receipt); // ref: draft-birkholz-scitt-receipts
-		this.receiptUrl = encodeURI(`data:text/plain;charset=ascii,${receipt}`);
+export class ReceiptMetadata {
+
+	static async fromTokenURI(tokenId, tokenURI, options) {
+		const rm = new ReceiptMetadata(tokenId, tokenURI);
+		await rm.fetch(options)
+		return rm;
+	}
+
+	constructor (tokenId, tokenURI) {
+		this.tokenId = tokenId;
+		this.tokenURI = tokenURI;
+		this.gatewayURI = ipfsGatewayURL(tokenURI);
+		this.identity = undefined;
+		this.receipt = undefined;
+		this.image = undefined;
+		this.metadata = undefined;
+	}
+
+	async fetch(options) {
+
+		this.metadata = await jsonFetchIPFS(this.tokenURI, options);
+		const base64receipt = await textFetchIPFS(this.metadata.properties.receipt_url);
+
+		this.image = ipfsGatewayURL(this.metadata.image);
+
+		const parts = this.tokenURI.split('/');
+		// regardless of http vs ipfs, the directory cid is the last path element before metadata.json
+
+		const directory_cid = parts[parts.length - 2];
+
+		this.receipt = ReceiptDetails.fromReceipt(base64receipt);
+		this.receipt.updateIPFS({
+			directory_cid,
+			receipt_url:this.metadata.properties.receipt_url,
+			receipt_content_url: this.metadata.properties.receipt_content_url
+		})
+	}
+}
+
+export class ReceiptDetails {
+
+	static fromReceipt(base64receipt) {
+
+		const receipt = new ReceiptDetails();
+		receipt.setReceipt(base64receipt)
+		return receipt;
+	}
+
+	static copy(other) {
+		const rd = new ReceiptDetails();
+		rd.base64 = other.base64;
+		rd.binary = other.binary;
+		rd.receiptUrl = other.receiptUrl;
+		rd.payloadText = other.payloadText;
+		rd.payloadJSONUrl = other.payloadJSONUrl;
+		rd.payload = structuredClone(other.payload);
+		rd.receiptTokenProofs = structuredClone(other.receiptTokenProofs);
+		rd.ipfs = structuredClone(other.ipfs);
+		rd.metadata = structuredClone(other.metadata);
+		return rd
+	}
+
+	/**
+	 * reset and initialise from a base64 receipt
+	 */
+	setReceipt(base64Receipt) {
+		this.base64 = base64Receipt;
+		this.binary = atob(base64Receipt); // ref: draft-birkholz-scitt-receipts
+		this.receiptUrl = encodeURI(`data:text/plain;charset=ascii,${base64Receipt}`);
 		if (this.binary) {
 			this.payloadText = decodePayloadFromCBOR(this.binary);
 			this.payloadJSONUrl = encodeURI(`data:application/json;charset=utf-8,${this.payloadText}`);
 		}
 		if (!this.payloadText) return;
 		this.payload = JSON.parse(this.payloadText);
-		console.log(Object.keys(this.payload));
-		console.log(Object.keys(this.payload.named_proofs[0]));
 		this.receiptTokenProofs = receiptTokenProofs(this.payload);
+
+		this.ipfs = {
+			directory_cid: undefined,
+			receipt_url: undefined,
+			receipt_content_url: undefined
+		}
+		// ERC 1155 metadata
+		this.metadata = undefined;
+	}
+
+	updateIPFS(ipfs) {
+		this.ipfs.directory_cid = ipfs.directory_cid;
+		this.ipfs.receipt_url = ipfs.receipt_url;
+		this.ipfs.receipt_content_url = ipfs.receipt_content_url;
+	}
+	isSaved() {
+		return (!!this.ipfs?.directory_cid && !!this.ipfs.receipt_url && !!this.ipfs.receipt_content_url)
+	}
+
+	updateMetadata(metadata) {
+		this.metadata = structuredClone(metadata);
+	}
+	isMinted() {
+		return !!this.metadata;
 	}
 }
 

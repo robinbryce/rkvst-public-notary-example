@@ -1,4 +1,5 @@
 <script>
+	import { ethers } from 'ethers';
 	import * as env from '$env/static/public';
 	import { invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
@@ -6,17 +7,19 @@
 	import { Navbar, NavBrand, NavLi, NavUl, NavHamburger } from 'flowbite-svelte';
 	import { Button } from 'flowbite-svelte';
 	import AssetsDrawer from '$components/assets/AssetsDrawer.svelte';
-	import ReceiptDrawer from '$lib/components/events/ReceiptDrawer.svelte';
+	import ReceiptDrawer from '$lib/components/receiptdrawer/ReceiptDrawer.svelte';
 	import SelectedAssetCard from '$components/assets/SelectedAssetCard.svelte';
 	import SelectedEventsCard from '$components/events/SelectedEventsCard.svelte';
 	import Web3AuthProvider from '$lib/components/web3/Web3AuthProvider.svelte';
 
-	import { selectedAsset } from '$lib/stores/assets.js';
 	import { Web3AuthModalSingleton } from '$lib/web3/web3authsingleton.js';
 	import { Web3AuthModalProviderContext } from '$lib/web3/web3authprovidercontext.js';
 	import { createProxy as createDiamondProxy } from '$lib/web3/rkvsteventtokens.js';
 
-	import { tokenContract } from '$lib/stores/receipttokens.js';
+	import { chainSwitch } from '$lib/stores/chainswitch.js';
+	import { signerAddress } from '$lib/stores/signeraddress.js';
+	import { selectedAsset } from '$lib/stores/assets.js';
+	import { tokenContract } from '$lib/stores/tokencontract.js';
 	import { currentUserInfo } from '$lib/stores/web3userinfo.js';
 
 	const RKVST_URL = env['PUBLIC_RKVST_URL'];
@@ -29,14 +32,11 @@
 	let receiptDrawerHidden = true;
 	let drawerButtonText = 'Select Asset';
 	let selectedAssetName;
-	let selectedIdentity;
 	let web3auth;
-	let currentSignerAddress;
 
 	$: {
 		if ($selectedAsset) {
 			selectedAssetName = $selectedAsset.attributes?.arc_display_name;
-			selectedIdentity = $selectedAsset.identity;
 			drawerButtonText = `Change Asset (${selectedAssetName})`;
 		} else {
 			drawerButtonText = 'Select Asset';
@@ -59,26 +59,32 @@
 				{ web3authOptions: () => data.web3auth.options ?? {} }
 			);
 			for (const cfg of data?.web3auth?.chains ?? []) await web3auth.addNetwork(cfg);
+			chainSwitch.set(web3auth);
 		}
 		setInterval(async () => {
 			invalidate('app:assets');
 		}, refreshInterval);
 	});
 
-	function signerChanged(signer, signerAddress) {
-		if (currentSignerAddress === signerAddress && $tokenContract) {
+	function signerChanged(signer, address) {
+		if ($signerAddress === address && $tokenContract) {
 			console.log(`+page.svelte# signerChanged notification for ${signerAddress}`);
 			return;
 		}
-		console.log(`+page.svelte# signerChanged ${signerAddress} re-binding signer ? ${!!signer}`);
+		console.log(`+page.svelte# signerChanged ${address} re-binding signer ? ${!!signer}`);
 		if (!signer) {
 			tokenContract.set(undefined);
 			return;
 		}
 
+		console.log(`+page.svelte# signerChanged binding contract @${tokenContractAddress} for signer "${address}"`);
 		const c = createDiamondProxy(tokenContractAddress, signer);
-		tokenContract.set(c);
-		currentSignerAddress = signerAddress;
+		console.log(`+page.svelte# signerChanged instance: ${c}`);
+		// tokenContract.set(c);
+		// signerAddress.set(address)
+		$tokenContract = c;
+		$signerAddress = address;
+		console.log(`+page.svelte# signerChanged done`);
 	}
 </script>
 
